@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'api_service.dart';
 import 'app_store.dart';
 import 'models.dart';
 import 'widgets.dart';
@@ -127,8 +126,9 @@ class _CurrencyScreenState extends State<CurrencyScreen> {
                 const SizedBox(height: 12),
                 IconButton.filledTonal(onPressed: () {
                   final oldBase = _base;
+                  final oldTarget = _target;
                   setState(() => _target = oldBase);
-                  _changeBase(_target);
+                  _changeBase(oldTarget);
                 }, icon: const Icon(Icons.swap_vert_rounded)),
                 const SizedBox(height: 12),
                 targetField,

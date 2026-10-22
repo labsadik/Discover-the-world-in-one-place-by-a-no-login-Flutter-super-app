@@ -126,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 final count = constraints.maxWidth > 850 ? 4 : 2;
                 final features = <_Feature>[
                   _Feature(Icons.public_rounded, 'World atlas', 'Countries & cultures', const Color(0xFF6374F5), () => widget.onNavigate(1)),
-                  _Feature(Icons.cloud_sun_rounded, 'Weather', 'Forecast & air quality', const Color(0xFF0E9D88), () => widget.onNavigate(2)),
+                  _Feature(Icons.wb_cloudy_rounded, 'Weather', 'Forecast & air quality', const Color(0xFF0E9D88), () => widget.onNavigate(2)),
                   _Feature(Icons.menu_book_rounded, 'Open library', 'Books & reading lists', const Color(0xFF8B5CF6), () => widget.onNavigate(3)),
                   _Feature(Icons.photo_library_rounded, 'Photo explorer', 'Real images & credits', const Color(0xFFEF8B44), () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const PhotosScreen()))),
                   _Feature(Icons.currency_exchange_rounded, 'Currency', 'Reference rates', const Color(0xFF2389C8), () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const CurrencyScreen()))),

@@ -19,13 +19,12 @@ class ApiService {
 
   final http.Client _client;
   static const _timeout = Duration(seconds: 18);
-  static const _userAgent = 'AtlasFlow/1.0 (public-data educational app)';
 
   Future<dynamic> _getJson(Uri uri, {required String cacheKey}) async {
     final prefs = await SharedPreferences.getInstance();
     try {
       final response = await _client
-          .get(uri, headers: const {'Accept': 'application/json', 'User-Agent': _userAgent})
+          .get(uri, headers: const {'Accept': 'application/json'})
           .timeout(_timeout);
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw ApiException('The data source returned HTTP ${response.statusCode}.');
