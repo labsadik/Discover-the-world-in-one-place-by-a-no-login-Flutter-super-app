@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'localization.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'app_store.dart';
@@ -99,7 +100,7 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
               controller: _controller,
               onChanged: _search,
               textInputAction: TextInputAction.search,
-              decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: 'Search a city, country or landmark…'),
+              decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: tr(context, 'Search a city, country or landmark…')),
             ),
             const SizedBox(height: 10),
             GlassSurface(
@@ -132,7 +133,7 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
                     return const EmptyPanel(
                       icon: Icons.travel_explore_rounded,
                       title: 'No destination guides found',
-                      message: 'Try another city, country or landmark name.',
+                      message: tr(context, 'Try another city, country or landmark name.'),
                     );
                   }
                   final canLoadMore = _hasMore && destinations.length % 24 == 0;

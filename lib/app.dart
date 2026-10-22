@@ -1,7 +1,8 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'localization.dart';
 
 import 'app_store.dart';
 import 'screens.dart';
@@ -256,10 +257,10 @@ class _AppShellState extends State<AppShell> {
         ),
         actions: [
           Tooltip(
-            message: 'Appearance',
+            message: tr(context, 'Appearance'),
             child: PopupMenuButton<ThemeMode>(
               icon: const Icon(Icons.palette_outlined),
-              tooltip: 'Appearance',
+              tooltip: tr(context, 'Appearance'),
               onSelected: store.setThemeMode,
               itemBuilder: (context) => const [
                 PopupMenuItem(value: ThemeMode.system, child: _ThemeMenuLabel(icon: Icons.brightness_auto, label: 'System theme')),

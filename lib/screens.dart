@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'localization.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -115,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _search,
               onChanged: (value) => setState(() => _query = value.trim().toLowerCase()),
               decoration: InputDecoration(
-                hintText: 'Search countries by name, capital or language…',
+                hintText: tr(context, 'Search countries by name, capital or language…'),
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _query.isEmpty ? const Icon(Icons.travel_explore_rounded) : IconButton(
                   onPressed: () { _search.clear(); setState(() => _query = ''); },
@@ -389,7 +390,7 @@ class _CountriesScreenState extends State<CountriesScreen> {
               controller: _controller,
               onChanged: (value) => setState(() => _query = value.trim().toLowerCase()),
               decoration: InputDecoration(
-                hintText: 'Country, capital, language…',
+                hintText: tr(context, 'Country, capital, language…'),
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _query.isEmpty ? null : IconButton(onPressed: () {
                   _controller.clear(); setState(() => _query = '');
@@ -416,7 +417,7 @@ class _CountriesScreenState extends State<CountriesScreen> {
             else if (store.countriesError != null && store.countries.isEmpty)
               Expanded(child: ErrorPanel(message: store.countriesError!, onRetry: () => store.loadCountries(forceRefresh: true)))
             else if (filtered.isEmpty)
-              const Expanded(child: EmptyPanel(icon: Icons.travel_explore_rounded, title: 'No countries found', message: 'Try a different name, capital or region.'))
+              const Expanded(child: EmptyPanel(icon: Icons.travel_explore_rounded, title: 'No countries found', message: tr(context, 'Try a different name, capital or region.')))
             else
               Expanded(child: LayoutBuilder(builder: (context, constraints) {
                 final columns = constraints.maxWidth > 900 ? 3 : (constraints.maxWidth > 540 ? 2 : 1);
@@ -449,7 +450,7 @@ class _CountryGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (countries.isEmpty) {
-      return const EmptyPanel(icon: Icons.search_off_rounded, title: 'No matching countries', message: 'Try another search, or open the full atlas.');
+      return const EmptyPanel(icon: Icons.search_off_rounded, title: 'No matching countries', message: tr(context, 'Try another search, or open the full atlas.'));
     }
     return LayoutBuilder(builder: (context, constraints) {
       final columns = constraints.maxWidth > 850 ? 3 : (constraints.maxWidth > 520 ? 2 : 1);
@@ -611,7 +612,7 @@ void showCountryCompareDialog(BuildContext context, Country first) {
           DropdownButtonFormField<Country>(
             initialValue: second,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Compare with'),
+            decoration: const InputDecoration(labelText: tr(context, 'Compare with')),
             items: countries.map((country) => DropdownMenuItem(value: country, child: Text(country.flagEmoji + '  ' + country.name, overflow: TextOverflow.ellipsis))).toList(),
             onChanged: (value) { if (value != null) setState(() => second = value); },
           ),
@@ -705,7 +706,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
           controller: _city,
           textInputAction: TextInputAction.search,
           onSubmitted: (_) => _loadCity(),
-          decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: 'Search any city…'),
+          decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: tr(context, 'Search any city…')),
         )),
         const SizedBox(width: 8),
         FilledButton(
@@ -985,7 +986,7 @@ class _BooksScreenState extends State<BooksScreen> {
             controller: _controller,
             onChanged: _search,
             textInputAction: TextInputAction.search,
-            decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: 'Title, author or topic…'),
+            decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: tr(context, 'Title, author or topic…')),
           ),
           const SizedBox(height: 12),
           Align(
@@ -1014,7 +1015,7 @@ class _BooksScreenState extends State<BooksScreen> {
               final firstPage = snapshot.data ?? const <Book>[];
               final books = <Book>[...firstPage, ..._moreBooks];
               if (books.isEmpty) {
-                return const EmptyPanel(icon: Icons.menu_book_outlined, title: 'No books found', message: 'Try a broader title, author or topic.');
+                return const EmptyPanel(icon: Icons.menu_book_outlined, title: 'No books found', message: tr(context, 'Try a broader title, author or topic.'));
               }
               final canLoadMore = _hasMore && books.length % 24 == 0;
               return Column(children: [
@@ -1152,7 +1153,7 @@ class BookDetailsSheet extends StatelessWidget {
           const SizedBox(height: 20),
           DropdownButtonFormField<String>(
             initialValue: store.readingStatuses[book.key] ?? 'Not saved',
-            decoration: const InputDecoration(labelText: 'Reading list'),
+            decoration: const InputDecoration(labelText: tr(context, 'Reading list')),
             items: const [
               DropdownMenuItem(value: 'Not saved', child: Text('Not saved')),
               DropdownMenuItem(value: 'Want to read', child: Text('Want to read')),
@@ -1215,7 +1216,7 @@ class _SavedScreenState extends State<SavedScreen> {
             duration: const Duration(milliseconds: 220),
             child: switch (_category) {
               'Countries' => countries.isEmpty
-                  ? const EmptyPanel(key: ValueKey('no-countries'), icon: Icons.bookmark_border, title: 'No saved countries yet', message: 'Open World Atlas and tap the bookmark to keep a country here.')
+                  ? const EmptyPanel(key: ValueKey('no-countries'), icon: Icons.bookmark_border, title: 'No saved countries yet', message: tr(context, 'Open World Atlas and tap the bookmark to keep a country here.'))
                   : ListView.separated(
                       key: const ValueKey('countries'),
                       itemCount: countries.length,
@@ -1223,7 +1224,7 @@ class _SavedScreenState extends State<SavedScreen> {
                       itemBuilder: (context, index) => _CountryTile(country: countries[index], onTap: () => showCountryDetails(context, countries[index])),
                     ),
               'Books' => store.savedBooks.isEmpty
-                  ? const EmptyPanel(key: ValueKey('no-books'), icon: Icons.menu_book_outlined, title: 'Your reading list is empty', message: 'Search Open Library and save books to track what you want to read.')
+                  ? const EmptyPanel(key: ValueKey('no-books'), icon: Icons.menu_book_outlined, title: 'Your reading list is empty', message: tr(context, 'Search Open Library and save books to track what you want to read.'))
                   : ListView.separated(
                       key: const ValueKey('books'),
                       itemCount: store.savedBooks.length,
@@ -1240,7 +1241,7 @@ class _SavedScreenState extends State<SavedScreen> {
                       },
                     ),
               _ => store.savedPhotos.isEmpty
-                  ? const EmptyPanel(key: ValueKey('no-photos'), icon: Icons.photo_library_outlined, title: 'No saved images yet', message: 'Discover public images and bookmark ones you want to revisit.')
+                  ? const EmptyPanel(key: ValueKey('no-photos'), icon: Icons.photo_library_outlined, title: 'No saved images yet', message: tr(context, 'Discover public images and bookmark ones you want to revisit.'))
                   : GridView.builder(
                       key: const ValueKey('photos'),
                       itemCount: store.savedPhotos.length,

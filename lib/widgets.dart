@@ -1,6 +1,7 @@
 import 'dart:ui' show ImageFilter;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'localization.dart';
 
 class ResponsivePage extends StatelessWidget {
   const ResponsivePage({
