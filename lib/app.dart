@@ -49,7 +49,7 @@ class AtlasFlowApp extends StatelessWidget {
       scaffoldBackgroundColor: dark ? const Color(0xFF101421) : const Color(0xFFF5F5FC),
       visualDensity: VisualDensity.standard,
       splashFactory: InkSparkle.splashFactory,
-      pageTransitionsTheme: const PageTransitionsTheme(
+      pageTransitionsTheme: PageTransitionsTheme(
         builders: {
           TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
           TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
