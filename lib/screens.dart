@@ -9,6 +9,7 @@ import 'app_store.dart';
 import 'extras.dart';
 import 'models.dart';
 import 'widgets.dart';
+import 'travel_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.onNavigate});
@@ -129,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _Feature(Icons.wb_cloudy_rounded, 'Weather', 'Forecast & air quality', const Color(0xFF0E9D88), () => widget.onNavigate(2)),
                   _Feature(Icons.menu_book_rounded, 'Open library', 'Books & reading lists', const Color(0xFF8B5CF6), () => widget.onNavigate(3)),
                   _Feature(Icons.photo_library_rounded, 'Photo explorer', 'Real images & credits', const Color(0xFFEF8B44), () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const PhotosScreen()))),
+                  _Feature(Icons.map_rounded, 'Travel guide', 'Destination info & tips', const Color(0xFF1D9A91), () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const TravelGuideScreen()))),
                   _Feature(Icons.currency_exchange_rounded, 'Currency', 'Reference rates', const Color(0xFF2389C8), () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const CurrencyScreen()))),
                   _Feature(Icons.quiz_rounded, 'Country quiz', 'Learn as you play', const Color(0xFFE45F80), () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const QuizScreen()))),
                   _Feature(Icons.bookmark_rounded, 'Saved', 'Your collection', const Color(0xFF64748B), () => widget.onNavigate(4)),

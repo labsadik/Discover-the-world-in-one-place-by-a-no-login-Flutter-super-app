@@ -234,6 +234,34 @@ class ApiService {
     return photos;
   }
 
+  Future<List<TravelDestination>> searchDestinations(String query) async {
+    final trimmed = query.trim().isEmpty ? 'popular destinations' : query.trim();
+    final data = await _fetchJsonObject(
+      Uri.https('en.wikivoyage.org', '/w/api.php', {
+        'action': 'query',
+        'generator': 'search',
+        'gsrsearch': trimmed,
+        'gsrnamespace': '0',
+        'gsrlimit': '24',
+        'prop': 'extracts|pageimages|info',
+        'exintro': '1',
+        'explaintext': '1',
+        'exchars': '1200',
+        'piprop': 'thumbnail',
+        'pithumbsize': '720',
+        'inprop': 'url',
+        'format': 'json',
+        'origin': '*',
+      }),
+      'travel_' + trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_'),
+    );
+    final pages = asJsonMap(asJsonMap(data['query'])['pages']);
+    return pages.values
+        .map((item) => TravelDestination.fromWikivoyage(asJsonMap(item)))
+        .where((destination) => destination.title.isNotEmpty && destination.pageUrl.isNotEmpty)
+        .toList();
+  }
+
   Future<Map<String, String>> fetchCurrencies() async {
     final data = await _fetchJsonObject(
       Uri.https('api.frankfurter.dev', '/v1/currencies'),

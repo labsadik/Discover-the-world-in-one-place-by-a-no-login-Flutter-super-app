@@ -48,6 +48,22 @@ void main() {
     });
   });
 
+  group('TravelDestination model', () {
+    test('parses public Wikivoyage article summaries', () {
+      final destination = TravelDestination.fromWikivoyage({
+        'pageid': 123,
+        'title': 'Example City',
+        'extract': 'A destination with history and food.',
+        'thumbnail': {'source': 'https://example.org/place.jpg'},
+        'fullurl': 'https://en.wikivoyage.org/wiki/Example_City',
+      });
+      expect(destination.title, 'Example City');
+      expect(destination.summary, contains('history and food'));
+      expect(destination.imageUrl, contains('place.jpg'));
+      expect(destination.pageUrl, contains('wikivoyage.org'));
+    });
+  });
+
   test('weather copy is human-readable', () {
     expect(weatherDescription(0), 'Clear sky');
     expect(weatherDescription(61), 'Rain');

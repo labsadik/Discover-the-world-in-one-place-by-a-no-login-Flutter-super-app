@@ -239,6 +239,34 @@ class PhotoItem {
       };
 }
 
+class TravelDestination {
+  const TravelDestination({
+    required this.id,
+    required this.title,
+    required this.summary,
+    required this.imageUrl,
+    required this.pageUrl,
+  });
+
+  final String id;
+  final String title;
+  final String summary;
+  final String imageUrl;
+  final String pageUrl;
+
+  factory TravelDestination.fromWikivoyage(Map<String, dynamic> json) {
+    final thumbnail = asJsonMap(json['thumbnail']);
+    final rawSummary = cleanHtml((json['extract'] ?? '').toString());
+    return TravelDestination(
+      id: (json['pageid'] ?? json['title'] ?? '').toString(),
+      title: (json['title'] ?? 'Untitled destination').toString(),
+      summary: rawSummary.isEmpty ? 'Open the source article for destination information and travel tips.' : rawSummary,
+      imageUrl: (thumbnail['source'] ?? '').toString(),
+      pageUrl: (json['fullurl'] ?? '').toString(),
+    );
+  }
+}
+
 class ForecastDay {
   const ForecastDay({
     required this.date,
