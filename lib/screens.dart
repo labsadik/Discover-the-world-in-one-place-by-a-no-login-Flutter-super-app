@@ -134,8 +134,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   _Feature(Icons.bookmark_rounded, 'Saved', 'Your collection', const Color(0xFF64748B), () => widget.onNavigate(4)),
                   _Feature(Icons.auto_awesome_rounded, 'Daily discovery', 'Find something new', const Color(0xFFD2A12E), () {
                     final list = store.countries;
-                    if (list.isNotEmpty) showCountryDetails(context, list[DateTime.now().day % list.length]);
-                    else widget.onNavigate(1);
+                    if (list.isNotEmpty) {
+                      showCountryDetails(context, list[DateTime.now().day % list.length]);
+                    } else {
+                      widget.onNavigate(1);
+                    }
                   }),
                 ];
                 return GridView.count(
@@ -515,7 +518,7 @@ void showCountryCompareDialog(BuildContext context, Country first) {
         width: 480,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           DropdownButtonFormField<Country>(
-            value: second,
+            initialValue: second,
             isExpanded: true,
             decoration: const InputDecoration(labelText: 'Compare with'),
             items: countries.map((country) => DropdownMenuItem(value: country, child: Text(country.flagEmoji + '  ' + country.name, overflow: TextOverflow.ellipsis))).toList(),
@@ -958,7 +961,7 @@ class BookDetailsSheet extends StatelessWidget {
           ],
           const SizedBox(height: 20),
           DropdownButtonFormField<String>(
-            value: store.readingStatuses[book.key] ?? 'Not saved',
+            initialValue: store.readingStatuses[book.key] ?? 'Not saved',
             decoration: const InputDecoration(labelText: 'Reading list'),
             items: const [
               DropdownMenuItem(value: 'Not saved', child: Text('Not saved')),

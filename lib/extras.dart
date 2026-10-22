@@ -107,14 +107,14 @@ class _CurrencyScreenState extends State<CurrencyScreen> {
           LayoutBuilder(builder: (context, constraints) {
             final stacked = constraints.maxWidth < 480;
             final baseField = DropdownButtonFormField<String>(
-              value: _base,
+              initialValue: _base,
               isExpanded: true,
               decoration: const InputDecoration(labelText: 'From'),
               items: codes.map((code) => DropdownMenuItem(value: code, child: Text(code + ' · ' + (_currencies[code] ?? code), overflow: TextOverflow.ellipsis))).toList(),
               onChanged: _loading ? null : _changeBase,
             );
             final targetField = DropdownButtonFormField<String>(
-              value: _target,
+              initialValue: _target,
               isExpanded: true,
               decoration: const InputDecoration(labelText: 'To'),
               items: codes.map((code) => DropdownMenuItem(value: code, child: Text(code + ' · ' + (_currencies[code] ?? code), overflow: TextOverflow.ellipsis))).toList(),
