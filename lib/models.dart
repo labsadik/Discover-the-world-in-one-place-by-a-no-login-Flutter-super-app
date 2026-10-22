@@ -56,6 +56,7 @@ class Country {
     final translated = translatedNames[languageCode];
     if (translated != null && translated.isNotEmpty) return translated;
     if (languageCode == 'bn') return const {'IN':'ভারত','BD':'বাংলাদেশ','US':'মার্কিন যুক্তরাষ্ট্র','GB':'যুক্তরাজ্য','CN':'চীন','JP':'জাপান','RU':'রাশিয়া','IR':'ইরান','SA':'সৌদি আরব','AE':'সংযুক্ত আরব আমিরাত','PK':'পাকিস্তান','NP':'নেপাল','LK':'শ্রীলঙ্কা','BR':'ব্রাজিল','FR':'ফ্রান্স','DE':'জার্মানি','CA':'কানাডা','AU':'অস্ট্রেলিয়া','KR':'দক্ষিণ কোরিয়া','IT':'ইতালি','ES':'স্পেন','EG':'মিশর','ZA':'দক্ষিণ আফ্রিকা','ID':'ইন্দোনেশিয়া','MX':'মেক্সিকো','TH':'থাইল্যান্ড','TR':'তুরস্ক','SG':'সিঙ্গাপুর','MY':'মালয়েশিয়া','AF':'আফগানিস্তান','UA':'ইউক্রেন','CH':'সুইজারল্যান্ড','NZ':'নিউজিল্যান্ড','NG':'নাইজেরিয়া','KE':'কেনিয়া','AR':'আর্জেন্টিনা','SE':'সুইডেন','NO':'নরওয়ে','FI':'ফিনল্যান্ড','PL':'পোল্যান্ড','PT':'পর্তুগাল','GR':'গ্রিস','IQ':'ইরাক','IL':'ইসরায়েল','QA':'কাতার','KW':'কুয়েত','OM':'ওমান','MM':'মিয়ানমার','VN':'ভিয়েতনাম','PH':'ফিলিপাইন','ET':'ইথিওপিয়া','MA':'মরক্কো'}[code] ?? name;
+    if (languageCode == 'hi') return const {'IN':'भारत','BD':'बांग्लादेश','US':'संयुक्त राज्य अमेरिका','GB':'यूनाइटेड किंगडम','CN':'चीन','JP':'जापान','RU':'रूस','IR':'ईरान','SA':'सऊदी अरब','AE':'संयुक्त अरब अमीरात','PK':'पाकिस्तान','NP':'नेपाल','LK':'श्रीलंका','BR':'ब्राज़ील','FR':'फ़्रांस','DE':'जर्मनी','CA':'कनाडा','AU':'ऑस्ट्रेलिया','KR':'दक्षिण कोरिया','IT':'इटली','ES':'स्पेन','EG':'मिस्र','ZA':'दक्षिण अफ्रीका','ID':'इंडोनेशिया','MX':'मेक्सिको','TH':'थाईलैंड','TR':'तुर्की','SG':'सिंगापुर','MY':'मलेशिया','AF':'अफ़ग़ानिस्तान','UA':'यूक्रेन','CH':'स्विट्ज़रलैंड','NZ':'न्यूज़ीलैंड','NG':'नाइजीरिया','KE':'केन्या','AR':'अर्जेंटीना','SE':'स्वीडन','NO':'नॉर्वे','FI':'फ़िनलैंड','PL':'पोलैंड','PT':'पुर्तगाल','GR':'ग्रीस','IQ':'इराक','IL':'इज़राइल','QA':'क़तर','KW':'कुवैत','OM':'ओमान','MM':'म्यांमार','VN':'वियतनाम','PH':'फ़िलिपींस','ET':'इथियोपिया','MA':'मोरक्को'}[code] ?? name;
     return name;
   }
 
@@ -76,7 +77,7 @@ class Country {
     final currencyData = asJsonMap(json['currencies']);
     final languageData = asJsonMap(json['languages']);
     final translationData = asJsonMap(json['translations']);
-    const translationKeys = {'ar':'ara','fa':'per','ru':'rus','zh':'zho','ja':'jpn'};
+    const translationKeys = {'ar':'ara','fa':'per','ru':'rus','zh':'zho','ja':'jpn','hi':'hin'};
     final translatedNames = <String, String>{};
     for (final entry in translationKeys.entries) {
       final translated = asJsonMap(translationData[entry.value])['common'];
