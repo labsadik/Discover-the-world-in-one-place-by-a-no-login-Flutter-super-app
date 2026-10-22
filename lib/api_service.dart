@@ -192,15 +192,16 @@ class ApiService {
     );
   }
 
-  Future<List<Book>> searchBooks(String query) async {
+  Future<List<Book>> searchBooks(String query, {int offset = 0, int limit = 24}) async {
     final trimmed = query.trim().isEmpty ? 'world' : query.trim();
     final data = await _fetchJsonObject(
       Uri.https('openlibrary.org', '/search.json', {
         'q': trimmed,
-        'limit': '24',
+        'limit': limit.toString(),
+        'offset': offset.toString(),
         'fields': 'key,title,author_name,first_publish_year,cover_i,edition_count,subject',
       }),
-      'books_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
+      'books_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}_$offset',
     );
     return asJsonList(data['docs'])
         .map((item) => Book.fromJson(asJsonMap(item)))
@@ -208,7 +209,7 @@ class ApiService {
         .toList();
   }
 
-  Future<List<PhotoItem>> searchCommons(String query) async {
+  Future<List<PhotoItem>> searchCommons(String query, {int offset = 0}) async {
     final trimmed = query.trim().isEmpty ? 'world landmarks' : query.trim();
     final data = await _fetchJsonObject(
       Uri.https('commons.wikimedia.org', '/w/api.php', {
@@ -217,13 +218,14 @@ class ApiService {
         'gsrsearch': 'filetype:bitmap $trimmed',
         'gsrnamespace': '6',
         'gsrlimit': '24',
+        'gsroffset': offset.toString(),
         'prop': 'imageinfo',
         'iiprop': 'url|extmetadata',
         'iiurlwidth': '720',
         'format': 'json',
         'origin': '*',
       }),
-      'commons_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
+      'commons_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}_$offset',
     );
     final pages = asJsonMap(asJsonMap(data['query'])['pages']);
     final photos = <PhotoItem>[];
@@ -234,7 +236,7 @@ class ApiService {
     return photos;
   }
 
-  Future<List<TravelDestination>> searchDestinations(String query) async {
+  Future<List<TravelDestination>> searchDestinations(String query, {int offset = 0}) async {
     final trimmed = query.trim().isEmpty ? 'popular destinations' : query.trim();
     final data = await _fetchJsonObject(
       Uri.https('en.wikivoyage.org', '/w/api.php', {
@@ -243,6 +245,7 @@ class ApiService {
         'gsrsearch': trimmed,
         'gsrnamespace': '0',
         'gsrlimit': '24',
+        'gsroffset': offset.toString(),
         'prop': 'extracts|pageimages|info',
         'exintro': '1',
         'explaintext': '1',
@@ -253,7 +256,7 @@ class ApiService {
         'format': 'json',
         'origin': '*',
       }),
-      'travel_' + trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_'),
+      'travel_' + trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_') + '_' + offset.toString(),
     );
     final pages = asJsonMap(asJsonMap(data['query'])['pages']);
     return pages.values

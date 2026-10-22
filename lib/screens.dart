@@ -106,6 +106,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+            if (store.countries.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              _GlobalStats(countries: store.countries, savedCount: store.favoriteCountryCodes.length + store.readingStatuses.length),
+            ],
             const SizedBox(height: 22),
             TextField(
               controller: _search,
@@ -162,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
             if (store.countriesLoading && store.countries.isEmpty)
-              const LoadingPanel()
+              const SkeletonGrid(itemCount: 6, shrinkWrap: true, columns: 2)
             else if (store.countriesError != null && store.countries.isEmpty)
               ErrorPanel(message: store.countriesError!, onRetry: () => store.loadCountries(forceRefresh: true))
             else
@@ -200,6 +204,60 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+
+class _GlobalStats extends StatelessWidget {
+  const _GlobalStats({required this.countries, required this.savedCount});
+
+  final List<Country> countries;
+  final int savedCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final population = countries.fold<int>(0, (total, country) => total + country.population);
+    final languages = countries.expand((country) => country.languages).toSet().length;
+    return GlassSurface(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      radius: 22,
+      child: Row(children: [
+        Expanded(child: _GlobalStat(icon: Icons.public_rounded, color: const Color(0xFF6D60F4), number: countries.length.toString(), label: 'Countries')),
+        Container(width: 1, height: 43, color: scheme.outlineVariant.withValues(alpha: 0.8)),
+        Expanded(child: _GlobalStat(icon: Icons.groups_rounded, color: const Color(0xFF0A9DB1), number: formatCompactNumber(population), label: 'Population')),
+        Container(width: 1, height: 43, color: scheme.outlineVariant.withValues(alpha: 0.8)),
+        Expanded(child: _GlobalStat(icon: Icons.translate_rounded, color: const Color(0xFFE96692), number: languages.toString(), label: 'Languages')),
+      ]),
+    );
+  }
+}
+
+class _GlobalStat extends StatelessWidget {
+  const _GlobalStat({required this.icon, required this.color, required this.number, required this.label});
+
+  final IconData icon;
+  final Color color;
+  final String number;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [color.withValues(alpha: 0.20), color.withValues(alpha: 0.08)]),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: color, size: 17),
+      ),
+      const SizedBox(height: 6),
+      Text(number, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.25)),
+      Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+    ],
+  );
+}
+
 class _Feature {
   const _Feature(this.icon, this.title, this.caption, this.color, this.onTap);
   final IconData icon;
@@ -214,42 +272,73 @@ class _FeatureCard extends StatelessWidget {
   final _Feature feature;
 
   @override
-  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
-    tween: Tween(begin: 0.97, end: 1),
-    duration: const Duration(milliseconds: 300),
-    curve: Curves.easeOutCubic,
-    builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
-    child: Material(
-      color: Theme.of(context).colorScheme.surface,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        onTap: feature.onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.all(13),
-          child: Row(children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(color: feature.color.withValues(alpha: 0.13), borderRadius: BorderRadius.circular(13)),
-              child: Icon(feature.icon, color: feature.color, size: 22),
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.965, end: 1),
+      duration: const Duration(milliseconds: 360),
+      curve: Curves.easeOutCubic,
+      builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              scheme.surface,
+              Color.alphaBlend(feature.color.withValues(alpha: 0.055), scheme.surface),
+              scheme.surfaceContainerLowest,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(21),
+          border: Border.all(color: feature.color.withValues(alpha: 0.20), width: 1.05),
+          boxShadow: [
+            BoxShadow(color: feature.color.withValues(alpha: scheme.brightness == Brightness.dark ? 0.08 : 0.09), blurRadius: 18, offset: const Offset(0, 6)),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(21),
+          child: InkWell(
+            onTap: feature.onTap,
+            borderRadius: BorderRadius.circular(21),
+            child: Padding(
+              padding: const EdgeInsets.all(13),
+              child: Row(children: [
+                Container(
+                  width: 45,
+                  height: 45,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [feature.color.withValues(alpha: 0.20), feature.color.withValues(alpha: 0.075)],
+                    ),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: feature.color.withValues(alpha: 0.18)),
+                    boxShadow: [BoxShadow(color: feature.color.withValues(alpha: 0.09), blurRadius: 10, offset: const Offset(0, 3))],
+                  ),
+                  child: Icon(feature.icon, color: feature.color, size: 23),
+                ),
+                const SizedBox(width: 10),
+                Expanded(child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(feature.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 4),
+                    Text(feature.caption, maxLines: 2, overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant, height: 1.25)),
+                  ],
+                )),
+                Icon(Icons.arrow_forward_ios_rounded, size: 12, color: feature.color.withValues(alpha: 0.85)),
+              ]),
             ),
-            const SizedBox(width: 10),
-            Expanded(child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(feature.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800)),
-                const SizedBox(height: 4),
-                Text(feature.caption, maxLines: 2, overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-              ],
-            )),
-          ]),
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class CountriesScreen extends StatefulWidget {
@@ -323,7 +412,7 @@ class _CountriesScreenState extends State<CountriesScreen> {
             ),
             const SizedBox(height: 14),
             if (store.countriesLoading && store.countries.isEmpty)
-              const Expanded(child: LoadingPanel())
+              const Expanded(child: SkeletonGrid(itemCount: 10, columns: 2))
             else if (store.countriesError != null && store.countries.isEmpty)
               Expanded(child: ErrorPanel(message: store.countriesError!, onRetry: () => store.loadCountries(forceRefresh: true)))
             else if (filtered.isEmpty)
@@ -796,6 +885,7 @@ class _WeatherMetric extends StatelessWidget {
 
 class BooksScreen extends StatefulWidget {
   const BooksScreen({super.key});
+
   @override
   State<BooksScreen> createState() => _BooksScreenState();
 }
@@ -805,32 +895,91 @@ class _BooksScreenState extends State<BooksScreen> {
   Timer? _debounce;
   Future<List<Book>>? _future;
   String _query = 'world';
+  final List<Book> _moreBooks = [];
+  bool _loadingMore = false;
+  bool _hasMore = true;
+  int _queryVersion = 0;
 
   @override
-  void initState() { super.initState(); _future = AppStore.instance.api.searchBooks(_query); }
+  void initState() {
+    super.initState();
+    _future = AppStore.instance.api.searchBooks(_query);
+  }
 
   @override
-  void dispose() { _debounce?.cancel(); _controller.dispose(); super.dispose(); }
+  void dispose() {
+    _debounce?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
 
   void _search(String value) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 450), () {
+    _debounce = Timer(const Duration(milliseconds: 420), () {
       if (!mounted) return;
+      final query = value.trim().isEmpty ? 'world' : value.trim();
       setState(() {
-        _query = value.trim().isEmpty ? 'world' : value.trim();
+        _queryVersion++;
+        _query = query;
+        _moreBooks.clear();
+        _hasMore = true;
+        _loadingMore = false;
         _future = AppStore.instance.api.searchBooks(_query);
       });
     });
   }
 
+  Future<void> _loadMore(List<Book> firstPage) async {
+    if (_loadingMore || !_hasMore) return;
+    final query = _query;
+    final version = _queryVersion;
+    final offset = firstPage.length + _moreBooks.length;
+    setState(() => _loadingMore = true);
+    try {
+      final results = await AppStore.instance.api.searchBooks(query, offset: offset);
+      if (!mounted || version != _queryVersion) return;
+      final keys = <String>{...firstPage.map((book) => book.key), ..._moreBooks.map((book) => book.key)};
+      final unique = results.where((book) => keys.add(book.key)).toList();
+      setState(() {
+        _moreBooks.addAll(unique);
+        _hasMore = results.length >= 24 && unique.isNotEmpty;
+      });
+    } catch (error) {
+      if (mounted && version == _queryVersion) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Could not load more books: $error'),
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
+    } finally {
+      if (mounted && version == _queryVersion) setState(() => _loadingMore = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = AppStore.instance;
+    final scheme = Theme.of(context).colorScheme;
     return AnimatedBuilder(
       animation: store,
       builder: (context, _) => ResponsivePage(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const SectionHeading(title: 'Open Library', subtitle: 'Books from a public catalogue'),
+          Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            const Expanded(child: SectionHeading(title: 'Open Library', subtitle: 'Explore a world of books')),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [scheme.primaryContainer, scheme.secondaryContainer]),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.7)),
+              ),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.bookmark_added_rounded, size: 17, color: scheme.primary),
+                const SizedBox(width: 6),
+                Text(store.readingStatuses.length.toString(), style: TextStyle(fontWeight: FontWeight.w900, color: scheme.onSurface)),
+              ]),
+            ),
+          ]),
           const SizedBox(height: 18),
           TextField(
             controller: _controller,
@@ -839,28 +988,67 @@ class _BooksScreenState extends State<BooksScreen> {
             decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: 'Title, author or topic…'),
           ),
           const SizedBox(height: 12),
-          Row(children: [
-            const Icon(Icons.bookmark_added_outlined, size: 18),
-            const SizedBox(width: 8),
-            Expanded(child: Text(store.readingStatuses.length.toString() + ' books in your reading list',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant))),
-          ]),
-          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Paged results load in small batches for smoother browsing.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+          ),
+          const SizedBox(height: 12),
           Expanded(child: FutureBuilder<List<Book>>(
             future: _future,
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) return const LoadingPanel(label: 'Searching Open Library…');
-              if (snapshot.hasError) return ErrorPanel(message: snapshot.error.toString(), onRetry: () => setState(() => _future = store.api.searchBooks(_query)));
-              final books = snapshot.data ?? const <Book>[];
-              if (books.isEmpty) return const EmptyPanel(icon: Icons.menu_book_outlined, title: 'No books found', message: 'Try a broader title, author or topic.');
-              return LayoutBuilder(builder: (context, constraints) {
-                final columns = constraints.maxWidth > 1000 ? 5 : (constraints.maxWidth > 740 ? 4 : (constraints.maxWidth > 500 ? 3 : 2));
-                return GridView.builder(
-                  itemCount: books.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columns, crossAxisSpacing: 12, mainAxisSpacing: 14, childAspectRatio: 0.59),
-                  itemBuilder: (context, index) => _BookCard(book: books[index], onTap: () => showBookDetails(context, books[index])),
-                );
-              });
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SkeletonGrid(itemCount: 10, bookCards: true);
+              }
+              if (snapshot.hasError) {
+                return ErrorPanel(message: snapshot.error.toString(), onRetry: () {
+                  setState(() {
+                    _moreBooks.clear();
+                    _hasMore = true;
+                    _future = store.api.searchBooks(_query);
+                  });
+                });
+              }
+              final firstPage = snapshot.data ?? const <Book>[];
+              final books = <Book>[...firstPage, ..._moreBooks];
+              if (books.isEmpty) {
+                return const EmptyPanel(icon: Icons.menu_book_outlined, title: 'No books found', message: 'Try a broader title, author or topic.');
+              }
+              final canLoadMore = _hasMore && books.length % 24 == 0;
+              return Column(children: [
+                Expanded(child: LayoutBuilder(builder: (context, constraints) {
+                  final columns = constraints.maxWidth > 1120 ? 5 : (constraints.maxWidth > 820 ? 4 : (constraints.maxWidth > 520 ? 3 : 2));
+                  return GridView.builder(
+                    itemCount: books.length,
+                    cacheExtent: 520,
+                    addAutomaticKeepAlives: false,
+                    addRepaintBoundaries: true,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      crossAxisSpacing: 13,
+                      mainAxisSpacing: 15,
+                      childAspectRatio: 0.60,
+                    ),
+                    itemBuilder: (context, index) => _BookCard(book: books[index], onTap: () => showBookDetails(context, books[index])),
+                  );
+                })),
+                if (canLoadMore || _loadingMore)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12, bottom: 4),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _loadingMore ? null : () => _loadMore(firstPage),
+                        icon: _loadingMore
+                            ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Icon(Icons.expand_more_rounded),
+                        label: Text(_loadingMore ? 'Loading more books…' : 'Load more books'),
+                      ),
+                    ),
+                  ),
+              ]);
             },
           )),
         ]),

@@ -19,6 +19,10 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
   Timer? _debounce;
   Future<List<TravelDestination>>? _future;
   String _query = 'popular destinations';
+  final List<TravelDestination> _moreDestinations = [];
+  bool _loadingMore = false;
+  bool _hasMore = true;
+  int _queryVersion = 0;
 
   @override
   void initState() {
@@ -35,13 +39,45 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
 
   void _search(String value) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
+    _debounce = Timer(const Duration(milliseconds: 450), () {
       if (!mounted) return;
+      final query = value.trim().isEmpty ? 'popular destinations' : value.trim();
       setState(() {
-        _query = value.trim().isEmpty ? 'popular destinations' : value.trim();
+        _queryVersion++;
+        _query = query;
+        _moreDestinations.clear();
+        _loadingMore = false;
+        _hasMore = true;
         _future = AppStore.instance.api.searchDestinations(_query);
       });
     });
+  }
+
+  Future<void> _loadMore(List<TravelDestination> firstPage) async {
+    if (_loadingMore || !_hasMore) return;
+    final query = _query;
+    final version = _queryVersion;
+    final offset = firstPage.length + _moreDestinations.length;
+    setState(() => _loadingMore = true);
+    try {
+      final results = await AppStore.instance.api.searchDestinations(query, offset: offset);
+      if (!mounted || version != _queryVersion) return;
+      final keys = <String>{...firstPage.map((item) => item.id), ..._moreDestinations.map((item) => item.id)};
+      final unique = results.where((item) => keys.add(item.id)).toList();
+      setState(() {
+        _moreDestinations.addAll(unique);
+        _hasMore = results.length >= 24 && unique.isNotEmpty;
+      });
+    } catch (error) {
+      if (mounted && version == _queryVersion) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Could not load more destinations: $error'),
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
+    } finally {
+      if (mounted && version == _queryVersion) setState(() => _loadingMore = false);
+    }
   }
 
   void _retry() {
@@ -50,32 +86,34 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: const Text('Travel guide')),
       body: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionHeading(
-              title: 'Find your next destination',
-              subtitle: 'Real travel articles from English Wikivoyage',
-            ),
+            const SectionHeading(title: 'Find your next destination', subtitle: 'Real travel articles, photos and practical notes'),
             const SizedBox(height: 16),
             TextField(
               controller: _controller,
               onChanged: _search,
               textInputAction: TextInputAction.search,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search_rounded),
-                hintText: 'Search a city, country or landmark…',
-              ),
+              decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: 'Search a city, country or landmark…'),
             ),
             const SizedBox(height: 10),
-            Text(
-              'Discover city guides, regional highlights and practical travel notes. Open the source article for full information and licensing details.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+            GlassSurface(
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+              radius: 15,
+              tint: scheme.primaryContainer.withValues(alpha: 0.4),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Icon(Icons.travel_explore_rounded, size: 19, color: scheme.primary),
+                const SizedBox(width: 9),
+                Expanded(child: Text(
+                  'Destination summaries come from Wikivoyage. Open an article for the complete guide, transport information and updated travel notes.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(height: 1.35, color: scheme.onSurface),
+                )),
+              ]),
             ),
             const SizedBox(height: 14),
             Expanded(
@@ -83,12 +121,13 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
                 future: _future,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const LoadingPanel(label: 'Searching Wikivoyage…');
+                    return const SkeletonGrid(itemCount: 8, bookCards: true);
                   }
                   if (snapshot.hasError) {
                     return ErrorPanel(message: snapshot.error.toString(), onRetry: _retry);
                   }
-                  final destinations = snapshot.data ?? const <TravelDestination>[];
+                  final firstPage = snapshot.data ?? const <TravelDestination>[];
+                  final destinations = <TravelDestination>[...firstPage, ..._moreDestinations];
                   if (destinations.isEmpty) {
                     return const EmptyPanel(
                       icon: Icons.travel_explore_rounded,
@@ -96,11 +135,14 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
                       message: 'Try another city, country or landmark name.',
                     );
                   }
-                  return LayoutBuilder(
-                    builder: (context, constraints) {
+                  final canLoadMore = _hasMore && destinations.length % 24 == 0;
+                  return Column(children: [
+                    Expanded(child: LayoutBuilder(builder: (context, constraints) {
                       if (constraints.maxWidth < 560) {
                         return ListView.separated(
                           itemCount: destinations.length,
+                          cacheExtent: 360,
+                          addAutomaticKeepAlives: false,
                           separatorBuilder: (_, _) => const SizedBox(height: 10),
                           itemBuilder: (context, index) => _DestinationListCard(
                             destination: destinations[index],
@@ -108,9 +150,11 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
                           ),
                         );
                       }
-                      final columns = constraints.maxWidth > 1050 ? 3 : 2;
+                      final columns = constraints.maxWidth > 1100 ? 3 : 2;
                       return GridView.builder(
                         itemCount: destinations.length,
+                        cacheExtent: 480,
+                        addAutomaticKeepAlives: false,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: columns,
                           crossAxisSpacing: 14,
@@ -122,8 +166,22 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
                           onTap: () => _showDetails(context, destinations[index]),
                         ),
                       );
-                    },
-                  );
+                    })),
+                    if (canLoadMore || _loadingMore)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10, bottom: 4),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _loadingMore ? null : () => _loadMore(firstPage),
+                            icon: _loadingMore
+                                ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2))
+                                : const Icon(Icons.add_location_alt_outlined),
+                            label: Text(_loadingMore ? 'Loading more places…' : 'Load more destinations'),
+                          ),
+                        ),
+                      ),
+                  ]);
                 },
               ),
             ),

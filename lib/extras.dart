@@ -193,6 +193,10 @@ class _PhotosScreenState extends State<PhotosScreen> {
   Timer? _debounce;
   Future<List<PhotoItem>>? _future;
   String _query = 'world landmarks';
+  final List<PhotoItem> _morePhotos = [];
+  bool _loadingMore = false;
+  bool _hasMore = true;
+  int _queryVersion = 0;
 
   @override
   void initState() {
@@ -209,86 +213,171 @@ class _PhotosScreenState extends State<PhotosScreen> {
 
   void _search(String value) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
+    _debounce = Timer(const Duration(milliseconds: 450), () {
       if (!mounted) return;
+      final query = value.trim().isEmpty ? 'world landmarks' : value.trim();
       setState(() {
-        _query = value.trim().isEmpty ? 'world landmarks' : value.trim();
+        _queryVersion++;
+        _query = query;
+        _morePhotos.clear();
+        _loadingMore = false;
+        _hasMore = true;
         _future = AppStore.instance.api.searchCommons(_query);
       });
     });
   }
 
+  Future<void> _loadMore(List<PhotoItem> firstPage) async {
+    if (_loadingMore || !_hasMore) return;
+    final query = _query;
+    final version = _queryVersion;
+    final offset = firstPage.length + _morePhotos.length;
+    setState(() => _loadingMore = true);
+    try {
+      final results = await AppStore.instance.api.searchCommons(query, offset: offset);
+      if (!mounted || version != _queryVersion) return;
+      final keys = <String>{...firstPage.map((photo) => photo.id), ..._morePhotos.map((photo) => photo.id)};
+      final unique = results.where((photo) => keys.add(photo.id)).toList();
+      setState(() {
+        _morePhotos.addAll(unique);
+        _hasMore = results.length >= 24 && unique.isNotEmpty;
+      });
+    } catch (error) {
+      if (mounted && version == _queryVersion) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Could not load more images: $error'),
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
+    } finally {
+      if (mounted && version == _queryVersion) setState(() => _loadingMore = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = AppStore.instance;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: const Text('Visual discovery')),
-      body: ResponsivePage(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SectionHeading(title: 'A world in pictures', subtitle: 'Search public images and view their licence details'),
-        const SizedBox(height: 18),
-        TextField(
-          controller: _controller,
-          onChanged: _search,
-          textInputAction: TextInputAction.search,
-          decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: 'Landmark, country or landscape…'),
-        ),
-        const SizedBox(height: 12),
-        Text('Images are sourced from Wikimedia Commons. Each file may have its own licence and attribution requirements.',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-        const SizedBox(height: 16),
-        Expanded(child: AnimatedBuilder(
-          animation: store,
-          builder: (context, _) => FutureBuilder<List<PhotoItem>>(
-            future: _future,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) return const LoadingPanel(label: 'Finding public images…');
-              if (snapshot.hasError) return ErrorPanel(message: snapshot.error.toString(), onRetry: () => setState(() => _future = store.api.searchCommons(_query)));
-              final photos = snapshot.data ?? const <PhotoItem>[];
-              if (photos.isEmpty) return const EmptyPanel(icon: Icons.photo_library_outlined, title: 'No images found', message: 'Try another place or topic.');
-              return LayoutBuilder(builder: (context, constraints) {
-                final columns = constraints.maxWidth > 900 ? 4 : (constraints.maxWidth > 600 ? 3 : 2);
-                return GridView.builder(
-                  itemCount: photos.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columns, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.72),
-                  itemBuilder: (context, index) {
-                    final photo = photos[index];
-                    final saved = store.savedPhotos.containsKey(photo.id);
-                    return Card(
-                      clipBehavior: Clip.antiAlias,
-                      child: InkWell(
-                        onTap: () => _showPhoto(context, photo),
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Expanded(child: Stack(fit: StackFit.expand, children: [
-                            Image.network(photo.imageUrl, fit: BoxFit.cover,
-                              loadingBuilder: (context, child, progress) => progress == null ? child : const ImagePlaceholder(),
-                              errorBuilder: (_, _, _) => const ImagePlaceholder()),
-                            Positioned(right: 5, top: 5, child: Material(
-                              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.93),
-                              shape: const CircleBorder(),
-                              child: IconButton(
-                                visualDensity: VisualDensity.compact,
-                                tooltip: saved ? 'Remove saved image' : 'Save image',
-                                icon: Icon(saved ? Icons.bookmark : Icons.bookmark_border),
-                                onPressed: () => store.togglePhotoSaved(photo),
-                              ),
-                            )),
-                          ])),
-                          Padding(padding: const EdgeInsets.all(10), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text(photo.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800)),
-                            const SizedBox(height: 4),
-                            Text(photo.license, maxLines: 1, overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                          ])),
-                        ]),
-                      ),
-                    );
-                  },
-                );
-              });
-            },
+      body: ResponsivePage(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const SectionHeading(title: 'A world in pictures', subtitle: 'Explore public images with clear credits'),
+          const SizedBox(height: 18),
+          TextField(
+            controller: _controller,
+            onChanged: _search,
+            textInputAction: TextInputAction.search,
+            decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: 'Landmark, country or landscape…'),
           ),
-        )),
-      ])),
+          const SizedBox(height: 12),
+          GlassSurface(
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+            radius: 15,
+            tint: scheme.secondaryContainer.withValues(alpha: 0.45),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(Icons.info_outline_rounded, size: 18, color: scheme.primary),
+              const SizedBox(width: 9),
+              Expanded(child: Text('Every image can have a different licence. Open its source page before reusing it.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(height: 1.35, color: scheme.onSurface))),
+            ]),
+          ),
+          const SizedBox(height: 14),
+          Expanded(child: AnimatedBuilder(
+            animation: store,
+            builder: (context, _) => FutureBuilder<List<PhotoItem>>(
+              future: _future,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SkeletonGrid(itemCount: 8, bookCards: true);
+                }
+                if (snapshot.hasError) {
+                  return ErrorPanel(message: snapshot.error.toString(), onRetry: () {
+                    setState(() {
+                      _morePhotos.clear();
+                      _hasMore = true;
+                      _future = store.api.searchCommons(_query);
+                    });
+                  });
+                }
+                final firstPage = snapshot.data ?? const <PhotoItem>[];
+                final photos = <PhotoItem>[...firstPage, ..._morePhotos];
+                if (photos.isEmpty) {
+                  return const EmptyPanel(icon: Icons.photo_library_outlined, title: 'No images found', message: 'Try another place or topic.');
+                }
+                final canLoadMore = _hasMore && photos.length % 24 == 0;
+                return Column(children: [
+                  Expanded(child: LayoutBuilder(builder: (context, constraints) {
+                    final columns = constraints.maxWidth > 1000 ? 4 : (constraints.maxWidth > 620 ? 3 : 2);
+                    return GridView.builder(
+                      itemCount: photos.length,
+                      cacheExtent: 500,
+                      addAutomaticKeepAlives: false,
+                      addRepaintBoundaries: true,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 0.72,
+                      ),
+                      itemBuilder: (context, index) {
+                        final photo = photos[index];
+                        final saved = store.savedPhotos.containsKey(photo.id);
+                        return Card(
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () => _showPhoto(context, photo),
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Expanded(child: Stack(fit: StackFit.expand, children: [
+                                Image.network(
+                                  photo.imageUrl,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, progress) => progress == null ? child : const ImagePlaceholder(),
+                                  errorBuilder: (_, _, _) => const ImagePlaceholder(),
+                                ),
+                                Positioned(right: 6, top: 6, child: Material(
+                                  color: scheme.surface.withValues(alpha: 0.96),
+                                  shape: const CircleBorder(),
+                                  child: IconButton(
+                                    visualDensity: VisualDensity.compact,
+                                    tooltip: saved ? 'Remove saved image' : 'Save image',
+                                    icon: Icon(saved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded, color: saved ? scheme.primary : scheme.onSurface),
+                                    onPressed: () => store.togglePhotoSaved(photo),
+                                  ),
+                                )),
+                              ])),
+                              Padding(padding: const EdgeInsets.all(10), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text(photo.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800)),
+                                const SizedBox(height: 5),
+                                Text(photo.license, maxLines: 1, overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(color: scheme.onSurfaceVariant)),
+                              ])),
+                            ]),
+                          ),
+                        );
+                      },
+                    );
+                  })),
+                  if (canLoadMore || _loadingMore)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10, bottom: 4),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _loadingMore ? null : () => _loadMore(firstPage),
+                          icon: _loadingMore
+                              ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2))
+                              : const Icon(Icons.add_photo_alternate_outlined),
+                          label: Text(_loadingMore ? 'Loading more images…' : 'Load more images'),
+                        ),
+                      ),
+                    ),
+                ]);
+              },
+            ),
+          )),
+        ]),
+      ),
     );
   }
 

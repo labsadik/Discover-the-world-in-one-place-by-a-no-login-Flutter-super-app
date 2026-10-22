@@ -4,7 +4,7 @@
 
 ## Features
 
-- **Home dashboard:** animated hero, global country search and shortcuts into each module.
+- **Home dashboard:** colorful animated hero, glossy global-stat panel, global country search and shortcuts into each module.
 - **World Atlas:** real country records; flags, capitals, regions, population, area, currency, languages, time zones, borders, and side-by-side country comparison.
 - **Weather Center:** search any city or optionally use device location; current conditions, feels-like temperature, humidity, wind, hourly outlook, 7-day forecast, sunrise/sunset and air quality when available.
 - **Travel Guide:** search real English Wikivoyage destination articles; read article introductions, see available thumbnails and open the full source page.
@@ -13,8 +13,13 @@
 - **Currency converter:** reference exchange rates with source date and conversion; not a guaranteed live trading quote.
 - **Country quiz:** flag quiz generated from fetched country data; best score is stored locally.
 - **Saved space:** favourite countries, books and images stored on this device.
-- **Personalization:** Light, Dark and System themes; responsive layouts for narrow and wide screens.
+- **Personalization:** Light, Dark and System themes; iOS-inspired glass surfaces with clear contrast, glossy gradient cards, smooth page transitions and responsive layouts.
+- **Progressive loading:** book, photo and travel-guide results load in pages with explicit Load more controls; shimmer skeleton cards preserve layout while data arrives.
 - **No account, no private backend, no API keys.** Internet access is required for fresh public data. Cached responses may be shown if a source is temporarily unavailable.
+
+## Visual design and performance
+
+AtlasFlow uses an iOS-inspired glass treatment for compact UI chrome, readable opaque surfaces for content, bright accent gradients, visible outlines, and subtle shadows. The app avoids blurring every list card so large grids remain cheaper to render. Large result lists use builder-based grids, bounded image cache extents, disabled keep-alive for disposable cards, debounced searches and paginated fetching.
 
 ## Public data sources
 
