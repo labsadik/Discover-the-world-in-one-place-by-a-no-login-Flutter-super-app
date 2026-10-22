@@ -533,7 +533,7 @@ class CountryDetailsSheet extends StatelessWidget {
               Text(country.flagEmoji, style: const TextStyle(fontSize: 46)),
               const SizedBox(width: 14),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(country.name, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
+                Text(country.localizedName(Localizations.localeOf(context).languageCode), style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
                 Text(country.officialName, style: Theme.of(context).textTheme.bodySmall),
               ])),
               IconButton.filledTonal(
@@ -790,7 +790,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
               SizedBox(width: 48, child: Text(weekdayLabel(day.date), style: const TextStyle(fontWeight: FontWeight.w700))),
               Icon(weatherIcon(day.weatherCode), size: 22, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 10),
-              Expanded(child: Text(weatherDescription(day.weatherCode), style: Theme.of(context).textTheme.bodySmall)),
+              Expanded(child: Text(tr(context, weatherDescription(day.weatherCode)), style: Theme.of(context).textTheme.bodySmall)),
               Text(day.minTemp.round().toString() + '°', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
               const SizedBox(width: 14),
               SizedBox(width: 34, child: Text(day.maxTemp.round().toString() + '°', textAlign: TextAlign.end, style: const TextStyle(fontWeight: FontWeight.w800))),
@@ -845,7 +845,7 @@ class _WeatherHero extends StatelessWidget {
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(place, style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800)),
         const SizedBox(height: 6),
-        Text(weatherDescription(weather.weatherCode), style: TextStyle(color: Colors.white.withValues(alpha: 0.84))),
+        Text(tr(context, weatherDescription(weather.weatherCode)), style: TextStyle(color: Colors.white.withValues(alpha: 0.84))),
         const SizedBox(height: 12),
         TweenAnimationBuilder<double>(
           tween: Tween(begin: 0, end: weather.temperature),
@@ -854,7 +854,7 @@ class _WeatherHero extends StatelessWidget {
             style: const TextStyle(color: Colors.white, fontSize: 64, height: 1, fontWeight: FontWeight.w900, letterSpacing: -3)),
         ),
         const SizedBox(height: 8),
-        Text('Updated ' + weather.updatedAt, style: TextStyle(color: Colors.white.withValues(alpha: 0.72), fontSize: 11)),
+        Text(tr(context, 'Updated') + ' ' + weather.updatedAt, style: TextStyle(color: Colors.white.withValues(alpha: 0.72), fontSize: 11)),
       ])),
       Icon(weatherIcon(weather.weatherCode, isDay: weather.isDay), size: 86, color: Colors.white.withValues(alpha: 0.94)),
     ]),

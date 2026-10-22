@@ -168,7 +168,7 @@ class ApiService {
   }
 
   Future<({double latitude, double longitude, String name, String country})> geocodeCity(
-    String city, {String language = 'en'},
+    String city, {String language = 'en'}
   ) async {
     final trimmed = city.trim();
     if (trimmed.isEmpty) throw const ApiException('Enter a city name first.');

@@ -82,7 +82,7 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
   }
 
   void _retry() {
-    setState(() => _future = AppStore.instance.api.searchDestinations(_query));
+    setState(() => _future = AppStore.instance.api.searchDestinations(_query, language: Localizations.localeOf(context).languageCode));
   }
 
   @override

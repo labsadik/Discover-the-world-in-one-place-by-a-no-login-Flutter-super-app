@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart' hide Text;
 import 'package:url_launcher/url_launcher.dart';
-import 'api_service.dart';
 import 'app_store.dart';
 import 'localization.dart';
 import 'models.dart';
@@ -205,7 +204,7 @@ class _EconomyTabState extends State<_EconomyTab> {
   String _value(WorldBankIndicator item) {
     if (item.code == 'IT.NET.USER.ZS') return '${item.value.toStringAsFixed(1)}%';
     if (item.code == 'SP.DYN.LE00.IN') return '${item.value.toStringAsFixed(1)} years';
-    if (item.code == 'NY.GDP.PCAP.CD' || item.code == 'NY.GDP.MKTP.CD') return '$${formatCompactNumber(item.value)}';
+    if (item.code == 'NY.GDP.PCAP.CD' || item.code == 'NY.GDP.MKTP.CD') return '\${formatCompactNumber(item.value)}';
     return formatCompactNumber(item.value);
   }
   @override Widget build(BuildContext context) {
