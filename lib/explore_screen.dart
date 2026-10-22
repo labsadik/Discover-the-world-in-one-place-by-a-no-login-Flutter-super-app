@@ -44,6 +44,17 @@ class _DirectoryTabState extends State<_DirectoryTab> {
   bool _loading = false;
   String? _error;
   int _version = 0;
+  String? _observedLanguage;
+  @override void didChangeDependencies() {
+    super.didChangeDependencies();
+    final language = Localizations.localeOf(context).languageCode;
+    if (_observedLanguage == null) { _observedLanguage = language; return; }
+    if (_observedLanguage == language) return;
+    _observedLanguage = language;
+    if (_controller.text.trim().isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _search(); });
+    }
+  }
   @override void dispose() { _controller.dispose(); super.dispose(); }
 
   Future<void> _search([String? forced]) async {

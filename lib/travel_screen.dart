@@ -24,11 +24,30 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
   bool _loadingMore = false;
   bool _hasMore = true;
   int _queryVersion = 0;
+  String? _observedLanguage;
 
   @override
   void initState() {
     super.initState();
     _future = AppStore.instance.api.searchDestinations(_query, language: AppStore.instance.locale.languageCode);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final language = Localizations.localeOf(context).languageCode;
+    if (_observedLanguage == null) {
+      _observedLanguage = language;
+      return;
+    }
+    if (_observedLanguage == language) return;
+    _observedLanguage = language;
+    // Re-fetch source-language articles and discard previous-language pages.
+    _queryVersion++;
+    _moreDestinations.clear();
+    _hasMore = true;
+    _loadingMore = false;
+    _future = AppStore.instance.api.searchDestinations(_query, language: language);
   }
 
   @override

@@ -176,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   final query = _query;
                   final matches = country.localizedName(Localizations.localeOf(context).languageCode).toLowerCase().contains(query) ||
                       country.capitals.any((capital) => capital.toLowerCase().contains(query)) ||
-                      country.region.toLowerCase().contains(query) ||
+                      tr(context, country.region).toLowerCase().contains(query) ||
                       country.languages.any((language) => language.toLowerCase().contains(query));
                   if (query.isNotEmpty) return matches;
                   return ['Japan', 'India', 'Brazil', 'France', 'Canada', 'New Zealand'].contains(country.name);
@@ -617,11 +617,11 @@ void showCountryCompareDialog(BuildContext context, Country first) {
             onChanged: (value) { if (value != null) setState(() => second = value); },
           ),
           const SizedBox(height: 18),
-          _CompareRow(label: 'Capital', left: first.capital, right: second.capital),
-          _CompareRow(label: 'Population', left: formatCompactNumber(first.population), right: formatCompactNumber(second.population)),
-          _CompareRow(label: 'Area km²', left: formatCompactNumber(first.area.round()), right: formatCompactNumber(second.area.round())),
-          _CompareRow(label: 'Currency', left: first.currencyLabel, right: second.currencyLabel),
-          _CompareRow(label: 'Languages', left: first.languages.take(2).join(', '), right: second.languages.take(2).join(', ')),
+          _CompareRow(label: tr(context, 'Capital'), left: first.capital, right: second.capital),
+          _CompareRow(label: tr(context, 'Population'), left: first.population > 0 ? formatCompactNumber(first.population) : tr(context, 'Population unavailable'), right: second.population > 0 ? formatCompactNumber(second.population) : tr(context, 'Population unavailable')),
+          _CompareRow(label: tr(context, 'Area km²'), left: formatCompactNumber(first.area.round()), right: formatCompactNumber(second.area.round())),
+          _CompareRow(label: tr(context, 'Currency'), left: first.currencyLabel, right: second.currencyLabel),
+          _CompareRow(label: tr(context, 'Languages'), left: first.languages.take(2).join(', '), right: second.languages.take(2).join(', ')),
         ]),
       ),
       actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Done'))],
@@ -658,6 +658,19 @@ class _WeatherScreenState extends State<WeatherScreen> {
   String _place = '';
   bool _loading = false;
   String? _error;
+  String? _observedLanguage;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final language = Localizations.localeOf(context).languageCode;
+    if (_observedLanguage == null) { _observedLanguage = language; return; }
+    if (_observedLanguage == language) return;
+    _observedLanguage = language;
+    if (_city.text.trim().isNotEmpty && _weather != null && _place != 'Current location') {
+      WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted && !_loading) _loadCity(); });
+    }
+  }
 
   @override
   void dispose() { _city.dispose(); super.dispose(); }
