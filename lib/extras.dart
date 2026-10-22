@@ -102,7 +102,7 @@ class _CurrencyScreenState extends State<CurrencyScreen> {
             controller: _amountController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(labelText: tr(context, 'Amount'), prefixIcon: Icon(Icons.calculate_outlined)),
+            decoration: InputDecoration(labelText: tr(context, 'Amount'), prefixIcon: Icon(Icons.calculate_outlined)),
           ),
           const SizedBox(height: 14),
           LayoutBuilder(builder: (context, constraints) {
@@ -110,14 +110,14 @@ class _CurrencyScreenState extends State<CurrencyScreen> {
             final baseField = DropdownButtonFormField<String>(
               initialValue: _base,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: tr(context, 'From')),
+              decoration: InputDecoration(labelText: tr(context, 'From')),
               items: codes.map((code) => DropdownMenuItem(value: code, child: Text(code + ' · ' + (_currencies[code] ?? code), overflow: TextOverflow.ellipsis))).toList(),
               onChanged: _loading ? null : _changeBase,
             );
             final targetField = DropdownButtonFormField<String>(
               initialValue: _target,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: tr(context, 'To')),
+              decoration: InputDecoration(labelText: tr(context, 'To')),
               items: codes.map((code) => DropdownMenuItem(value: code, child: Text(code + ' · ' + (_currencies[code] ?? code), overflow: TextOverflow.ellipsis))).toList(),
               onChanged: (code) => setState(() => _target = code ?? _target),
             );
@@ -269,7 +269,7 @@ class _PhotosScreenState extends State<PhotosScreen> {
             controller: _controller,
             onChanged: _search,
             textInputAction: TextInputAction.search,
-            decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: tr(context, 'Landmark, country or landscape…')),
+            decoration: InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: tr(context, 'Landmark, country or landscape…')),
           ),
           const SizedBox(height: 12),
           GlassSurface(
@@ -304,7 +304,7 @@ class _PhotosScreenState extends State<PhotosScreen> {
                 final firstPage = snapshot.data ?? const <PhotoItem>[];
                 final photos = <PhotoItem>[...firstPage, ..._morePhotos];
                 if (photos.isEmpty) {
-                  return const EmptyPanel(icon: Icons.photo_library_outlined, title: 'No images found', message: tr(context, 'Try another place or topic.'));
+                  return EmptyPanel(icon: Icons.photo_library_outlined, title: 'No images found', message: tr(context, 'Try another place or topic.'));
                 }
                 final canLoadMore = _hasMore && photos.length % 24 == 0;
                 return Column(children: [
@@ -514,7 +514,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     )),
                   ))
                 : _questions.isEmpty
-                    ? const EmptyPanel(icon: Icons.quiz_outlined, title: 'Quiz not ready', message: tr(context, 'Load real country data to play.'))
+                    ? EmptyPanel(icon: Icons.quiz_outlined, title: 'Quiz not ready', message: tr(context, 'Load real country data to play.'))
                     : ListView(children: [
                         Row(children: [
                           Expanded(child: Text('FLAG CHALLENGE', style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.1))),

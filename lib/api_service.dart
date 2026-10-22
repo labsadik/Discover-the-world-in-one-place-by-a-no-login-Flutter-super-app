@@ -179,7 +179,7 @@ class ApiService {
         'language': language,
         'format': 'json',
       }),
-      'geocode_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
+      'geocode_${language}_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
     );
     final matches = asJsonList(result['results']);
     if (matches.isEmpty) throw ApiException('No matching place found for “$trimmed”.');
@@ -301,26 +301,30 @@ class ApiService {
 
   Future<List<WorldBankIndicator>> fetchWorldBankIndicators(String countryCode) async {
     const codes = ['SP.POP.TOTL','NY.GDP.MKTP.CD','NY.GDP.PCAP.CD','IT.NET.USER.ZS','SP.DYN.LE00.IN'];
-    final data = await _getJson(
-      Uri.https('api.worldbank.org', '/v2/country/${countryCode.toLowerCase()}/indicator/${codes.join(';')}', {
-        'format': 'json', 'per_page': '100', 'mrv': '10',
-      }),
-      cacheKey: 'worldbank_${countryCode.toLowerCase()}',
-    );
-    if (data is! List || data.length < 2) return const [];
-    final latest = <String, WorldBankIndicator>{};
-    for (final raw in asJsonList(data[1])) {
-      final row = asJsonMap(raw);
-      final code = asJsonMap(row['indicator'])['id']?.toString() ?? '';
-      final value = row['value'];
-      if (!codes.contains(code) || value is! num) continue;
-      final year = (row['date'] ?? '').toString();
-      final previous = latest[code];
-      if (previous == null || year.compareTo(previous.year) > 0) {
-        latest[code] = WorldBankIndicator(code: code, value: value.toDouble(), year: year);
+    final country = countryCode.toLowerCase();
+    // The World Bank endpoint is per indicator; fetch only this screen's five
+    // small, latest-value series concurrently and cache each series separately.
+    final responses = await Future.wait(codes.map((code) async {
+      final data = await _getJson(
+        Uri.https('api.worldbank.org', '/v2/country/$country/indicator/$code', {
+          'format': 'json', 'per_page': '100', 'mrv': '10',
+        }),
+        cacheKey: 'worldbank_${country}_$code',
+      );
+      if (data is! List || data.length < 2) return null;
+      WorldBankIndicator? latest;
+      for (final raw in asJsonList(data[1])) {
+        final row = asJsonMap(raw);
+        final value = row['value'];
+        if (value is! num) continue;
+        final year = (row['date'] ?? '').toString();
+        if (latest == null || year.compareTo(latest.year) > 0) {
+          latest = WorldBankIndicator(code: code, value: value.toDouble(), year: year);
+        }
       }
-    }
-    return codes.where(latest.containsKey).map((code) => latest[code]!).toList();
+      return latest;
+    }));
+    return responses.whereType<WorldBankIndicator>().toList();
   }
 
   Future<Map<String, String>> fetchCurrencies() async {

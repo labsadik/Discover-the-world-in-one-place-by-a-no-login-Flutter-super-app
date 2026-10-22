@@ -28,7 +28,7 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
   @override
   void initState() {
     super.initState();
-    _future = AppStore.instance.api.searchDestinations(_query, language: Localizations.localeOf(context).languageCode);
+    _future = AppStore.instance.api.searchDestinations(_query, language: AppStore.instance.locale.languageCode);
   }
 
   @override
@@ -49,7 +49,7 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
         _moreDestinations.clear();
         _loadingMore = false;
         _hasMore = true;
-        _future = AppStore.instance.api.searchDestinations(_query);
+        _future = AppStore.instance.api.searchDestinations(_query, language: Localizations.localeOf(context).languageCode);
       });
     });
   }
@@ -100,7 +100,7 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
               controller: _controller,
               onChanged: _search,
               textInputAction: TextInputAction.search,
-              decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: tr(context, 'Search a city, country or landmark…')),
+              decoration: InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: tr(context, 'Search a city, country or landmark…')),
             ),
             const SizedBox(height: 10),
             GlassSurface(
@@ -130,7 +130,7 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
                   final firstPage = snapshot.data ?? const <TravelDestination>[];
                   final destinations = <TravelDestination>[...firstPage, ..._moreDestinations];
                   if (destinations.isEmpty) {
-                    return const EmptyPanel(
+                    return EmptyPanel(
                       icon: Icons.travel_explore_rounded,
                       title: 'No destination guides found',
                       message: tr(context, 'Try another city, country or landmark name.'),
