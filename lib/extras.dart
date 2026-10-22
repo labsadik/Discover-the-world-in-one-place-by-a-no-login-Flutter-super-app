@@ -169,7 +169,7 @@ class _CurrencyScreenState extends State<CurrencyScreen> {
                   style: Theme.of(context).textTheme.bodyMedium),
               if (_date.isNotEmpty) ...[
                 const SizedBox(height: 4),
-                Text('Rate date: ' + _date, style: Theme.of(context).textTheme.bodySmall),
+                Text(tr(context, 'Rate date:') + ' ' + _date, style: Theme.of(context).textTheme.bodySmall),
               ],
             ]),
           ),
@@ -399,8 +399,8 @@ class _PhotosScreenState extends State<PhotosScreen> {
               const SizedBox(height: 14),
               Text(photo.title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
               const SizedBox(height: 8),
-              Text('Creator: ' + photo.artist),
-              Text('Licence: ' + photo.license),
+              Text(tr(context, 'Creator:') + ' ' + photo.artist),
+              Text(tr(context, 'Licence:') + ' ' + photo.license),
               if (photo.licenseUrl.isNotEmpty) SelectableText(photo.licenseUrl),
               const SizedBox(height: 16),
               Wrap(spacing: 10, runSpacing: 10, children: [
@@ -507,7 +507,7 @@ class _QuizScreenState extends State<QuizScreen> {
                         const SizedBox(height: 8),
                         Text(_score.toString() + ' / ' + _questions.length.toString(), style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900)),
                         const SizedBox(height: 8),
-                        Text('Best score on this device: ' + max(store.bestQuizScore, _score).toString()),
+                        Text(tr(context, 'Best score on this device:') + ' ' + max(store.bestQuizScore, _score).toString()),
                         const SizedBox(height: 22),
                         FilledButton.icon(onPressed: _prepare, icon: const Icon(Icons.replay_rounded), label: const Text('Play again')),
                       ]),
@@ -518,7 +518,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     : ListView(children: [
                         Row(children: [
                           Expanded(child: Text('FLAG CHALLENGE', style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.1))),
-                          Text('Question ' + (_index + 1).toString() + ' of ' + _questions.length.toString(), style: Theme.of(context).textTheme.bodySmall),
+                          Text(tr(context, 'Question') + ' ' + (_index + 1).toString() + ' ' + tr(context, 'of') + ' ' + _questions.length.toString(), style: Theme.of(context).textTheme.bodySmall),
                         ]),
                         const SizedBox(height: 10),
                         ClipRRect(borderRadius: BorderRadius.circular(12), child: LinearProgressIndicator(value: (_index + 1) / _questions.length, minHeight: 7)),

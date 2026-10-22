@@ -1286,9 +1286,9 @@ class PhotoDetailsSheet extends StatelessWidget {
           const SizedBox(height: 16),
           Text(photo.title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
-          Text('Creator: ' + photo.artist),
+          Text(tr(context, 'Creator:') + ' ' + photo.artist),
           const SizedBox(height: 4),
-          Text('Licence: ' + photo.license),
+          Text(tr(context, 'Licence:') + ' ' + photo.license),
           if (photo.licenseUrl.isNotEmpty) ...[const SizedBox(height: 8), SelectableText(photo.licenseUrl)],
           const SizedBox(height: 18),
           Wrap(spacing: 10, runSpacing: 10, children: [
