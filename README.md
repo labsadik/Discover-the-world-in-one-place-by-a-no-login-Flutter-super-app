@@ -5,9 +5,10 @@
 ## Features
 
 - **Home dashboard:** colorful animated hero, glossy global-stat panel, global country search and shortcuts into each module.
-- **World Atlas:** real country records; flags, capitals, regions, population, area, currency, languages, time zones, borders, and side-by-side country comparison.
+- **World Atlas:** real country records; flags, capitals, regions, population, area, currency, languages, time zones, borders, and side-by-side country comparison. Missing source values are shown as unavailable instead of inventing a zero.
+- **Explore hub:** public company and person discovery from Wikidata, localized place search through Wikipedia, and country-level population, GDP, GDP per capita, internet-use and life-expectancy data from the World Bank.
 - **Weather Center:** search any city or optionally use device location; current conditions, feels-like temperature, humidity, wind, hourly outlook, 7-day forecast, sunrise/sunset and air quality when available.
-- **Travel Guide:** search real English Wikivoyage destination articles; read article introductions, see available thumbnails and open the full source page.
+- **Travel Guide:** search Wikivoyage in supported languages, with localized Wikipedia place-search fallback for other app languages; read article introductions, see available thumbnails and open the full source page.
 - **Visual Discovery:** search Wikimedia Commons for real travel, landscape and architecture images; show creator and licence metadata where available.
 - **Open Library:** book/author/topic search, cover art, publication year, subjects, edition count, and a local “Want to read / Reading / Finished” list.
 - **Currency converter:** reference exchange rates with source date and conversion; not a guaranteed live trading quote.
@@ -27,7 +28,9 @@ AtlasFlow uses an iOS-inspired glass treatment for compact UI chrome, readable o
 - **Weather and geocoding:** [Open-Meteo](https://open-meteo.com/). The free API is for non-commercial use and requires attribution; see [terms](https://open-meteo.com/en/terms).
 - **Air quality:** [Open-Meteo Air Quality API](https://open-meteo.com/en/docs/air-quality-api). AQI may be unavailable for some places.
 - **Books and covers:** [Open Library API](https://openlibrary.org/developers/api). Respect its rate limits. Not every title can be read or downloaded for free.
-- **Destination articles:** [English Wikivoyage / MediaWiki API](https://en.wikivoyage.org/w/api.php) — article introductions and thumbnails without API keys.
+- **Company/person discovery:** [Wikidata public API](https://www.wikidata.org/wiki/Wikidata:Data_access) — multilingual entity search without API keys.
+- **Economic indicators:** [World Bank Indicators API](https://datahelpdesk.worldbank.org/knowledgebase/articles/889392) — latest available reporting values, including their data year.
+- **Destination articles:** [Wikivoyage / MediaWiki API](https://www.wikivoyage.org/) and the language-specific [Wikipedia / MediaWiki API](https://www.mediawiki.org/wiki/API:Main_page) — article summaries and thumbnails without API keys.
 - **Photos and metadata:** [Wikimedia Commons / MediaWiki APIs](https://www.mediawiki.org/wiki/Wikimedia_APIs). Each image can have a different licence; verify the linked file page before reuse.
 - **Reference exchange rates:** [Frankfurter](https://frankfurter.dev/). These are working-day reference observations, not a transaction quote.
 
@@ -75,7 +78,7 @@ Then run:
     flutter test
     flutter build web
 
-GitHub Actions runs analysis, tests and a web build. Automated CI does not replace testing on real devices before publishing.
+GitHub Actions runs analysis, widget tests, a web build, and an Android release APK build. The APK is published as a workflow artifact. Automated CI does not replace testing on real devices before publishing.
 
 ## Privacy
 

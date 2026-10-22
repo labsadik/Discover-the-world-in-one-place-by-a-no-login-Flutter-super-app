@@ -20,6 +20,10 @@ class ApiService {
   final http.Client _client;
   static const _timeout = Duration(seconds: 18);
 
+  // Keep non-Latin search terms distinct in the on-device cache (a regex that only
+  // preserves a-z would collapse every Bengali/Arabic/Japanese query to the same key).
+  String _cachePart(String value) => base64Url.encode(utf8.encode(value)).replaceAll('=', '');
+
   Future<dynamic> _getJson(Uri uri, {required String cacheKey}) async {
     final prefs = await SharedPreferences.getInstance();
     try {
@@ -179,7 +183,7 @@ class ApiService {
         'language': language,
         'format': 'json',
       }),
-      'geocode_${language}_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
+      'geocode_${_cachePart(language)}_${_cachePart(trimmed.toLowerCase())}',
     );
     final matches = asJsonList(result['results']);
     if (matches.isEmpty) throw ApiException('No matching place found for “$trimmed”.');
@@ -201,7 +205,7 @@ class ApiService {
         'offset': offset.toString(),
         'fields': 'key,title,author_name,first_publish_year,cover_i,edition_count,subject',
       }),
-      'books_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}_$offset',
+      'books_${_cachePart(trimmed.toLowerCase())}_$offset',
     );
     return asJsonList(data['docs'])
         .map((item) => Book.fromJson(asJsonMap(item)))
@@ -225,7 +229,7 @@ class ApiService {
         'format': 'json',
         'origin': '*',
       }),
-      'commons_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}_$offset',
+      'commons_${_cachePart(trimmed.toLowerCase())}_$offset',
     );
     final pages = asJsonMap(asJsonMap(data['query'])['pages']);
     final photos = <PhotoItem>[];
@@ -258,7 +262,7 @@ class ApiService {
         'format': 'json',
         'origin': '*',
       }),
-      'travel_' + trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_') + '_' + offset.toString(),
+      'travel_' + _cachePart(language) + '_' + _cachePart(trimmed.toLowerCase()) + '_' + offset.toString(),
     );
     final pages = asJsonMap(asJsonMap(data['query'])['pages']);
     return pages.values
@@ -276,7 +280,7 @@ class ApiService {
         'action': 'wbsearchentities', 'search': trimmed, 'language': language,
         'uselang': language, 'type': 'item', 'limit': '15', 'format': 'json', 'origin': '*',
       }),
-      'wikidata_${language}_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
+      'wikidata_${_cachePart(language)}_${_cachePart(trimmed.toLowerCase())}',
     );
     return asJsonList(data['search']).map((item) => PublicEntity.fromJson(asJsonMap(item)))
         .where((item) => item.label.isNotEmpty && item.url.isNotEmpty).toList();
@@ -292,7 +296,7 @@ class ApiService {
         'prop': 'extracts|pageimages|info', 'exintro': '1', 'explaintext': '1', 'exchars': '700',
         'piprop': 'thumbnail', 'pithumbsize': '480', 'inprop': 'url', 'format': 'json', 'origin': '*',
       }),
-      'wiki_places_${language}_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}_${offset}',
+      'wiki_places_${_cachePart(language)}_${_cachePart(trimmed.toLowerCase())}_${offset}',
     );
     final pages = asJsonMap(asJsonMap(data['query'])['pages']);
     return pages.values.map((item) => TravelDestination.fromWikipedia(asJsonMap(item)))
