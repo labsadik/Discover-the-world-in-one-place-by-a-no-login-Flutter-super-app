@@ -99,7 +99,7 @@ class _DirectoryTabState extends State<_DirectoryTab> {
       ))
       else Expanded(child: Center(child: Text(tr(context, 'Enter a search and press Search'), textAlign: TextAlign.center))),
       const SizedBox(height: 6),
-      Text('Wikidata · public knowledge graph', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      Text(tr(context, 'Wikidata · public knowledge graph'), style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
     ]);
   }
 }
@@ -164,7 +164,7 @@ class _PlacesTabState extends State<_PlacesTab> {
         },
       )),
       const SizedBox(height: 6),
-      Text('Wikipedia · Wikimedia Foundation', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      Text(tr(context, 'Wikipedia · Wikimedia Foundation'), style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
     ]);
   }
 }
@@ -236,7 +236,7 @@ class _EconomyTabState extends State<_EconomyTab> {
         ));
       })),
       const SizedBox(height: 6),
-      Text('Source: World Bank · World Development Indicators', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      Text(tr(context, 'Source: World Bank · World Development Indicators'), style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
     ]);
   }
 }

@@ -5,7 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('shared text follows the selected app language', (tester) async {
-    await tester.pumpWidget(const MaterialApp(locale: Locale('bn'), home: Scaffold(body: atlas.Text('Home'))));
+    await tester.pumpWidget(MaterialApp(
+      locale: const Locale('bn'),
+      supportedLocales: atlas.AtlasLocalizations.supportedLocales,
+      localizationsDelegates: const [atlas.AtlasLocalizations.delegate],
+      home: const Scaffold(body: atlas.Text('Home')),
+    ));
     expect(find.text('হোম'), findsOneWidget);
   });
 

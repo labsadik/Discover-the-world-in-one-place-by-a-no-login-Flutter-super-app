@@ -558,7 +558,7 @@ class _QuizScreenState extends State<QuizScreen> {
                                   child: Row(children: [
                                     Text(option.flagEmoji, style: const TextStyle(fontSize: 25)),
                                     const SizedBox(width: 12),
-                                    Expanded(child: Text(option.name, style: const TextStyle(fontWeight: FontWeight.w700))),
+                                    Expanded(child: Text(option.localizedName(Localizations.localeOf(context).languageCode), style: const TextStyle(fontWeight: FontWeight.w700))),
                                     if (_selectedCode != null && correct) const Icon(Icons.check_circle, color: Colors.green),
                                     if (picked && !correct) Icon(Icons.cancel, color: Theme.of(context).colorScheme.error),
                                   ]),
@@ -569,7 +569,7 @@ class _QuizScreenState extends State<QuizScreen> {
                         }),
                         if (_selectedCode != null) ...[
                           const SizedBox(height: 6),
-                          Text(_selectedCode == _questions[_index].answer.code ? 'Correct — great work!' : 'Correct answer: ' + _questions[_index].answer.name,
+                          Text(_selectedCode == _questions[_index].answer.code ? tr(context, 'Correct — great work!') : tr(context, 'Correct answer:') + ' ' + _questions[_index].answer.localizedName(Localizations.localeOf(context).languageCode),
                               style: TextStyle(fontWeight: FontWeight.w800, color: _selectedCode == _questions[_index].answer.code ? Colors.green : Theme.of(context).colorScheme.error)),
                           const SizedBox(height: 14),
                           FilledButton(
