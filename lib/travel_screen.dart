@@ -28,7 +28,7 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
   @override
   void initState() {
     super.initState();
-    _future = AppStore.instance.api.searchDestinations(_query);
+    _future = AppStore.instance.api.searchDestinations(_query, language: Localizations.localeOf(context).languageCode);
   }
 
   @override
@@ -61,7 +61,7 @@ class _TravelGuideScreenState extends State<TravelGuideScreen> {
     final offset = firstPage.length + _moreDestinations.length;
     setState(() => _loadingMore = true);
     try {
-      final results = await AppStore.instance.api.searchDestinations(query, offset: offset);
+      final results = await AppStore.instance.api.searchDestinations(query, offset: offset, language: Localizations.localeOf(context).languageCode);
       if (!mounted || version != _queryVersion) return;
       final keys = <String>{...firstPage.map((item) => item.id), ..._moreDestinations.map((item) => item.id)};
       final unique = results.where((item) => keys.add(item.id)).toList();

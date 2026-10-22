@@ -34,6 +34,7 @@ class Country {
     required this.currencyCodes,
     required this.timezones,
     required this.borders,
+    this.translatedNames = const {},
   });
 
   final String name;
@@ -50,6 +51,13 @@ class Country {
   final List<String> currencyCodes;
   final List<String> timezones;
   final List<String> borders;
+  final Map<String, String> translatedNames;
+  String localizedName(String languageCode) {
+    final translated = translatedNames[languageCode];
+    if (translated != null && translated.isNotEmpty) return translated;
+    if (languageCode == 'bn') return const {'IN':'ভারত','BD':'বাংলাদেশ','US':'মার্কিন যুক্তরাষ্ট্র','GB':'যুক্তরাজ্য','CN':'চীন','JP':'জাপান','RU':'রাশিয়া','IR':'ইরান','SA':'সৌদি আরব','AE':'সংযুক্ত আরব আমিরাত','PK':'পাকিস্তান','NP':'নেপাল','LK':'শ্রীলঙ্কা','BR':'ব্রাজিল','FR':'ফ্রান্স','DE':'জার্মানি','CA':'কানাডা','AU':'অস্ট্রেলিয়া','KR':'দক্ষিণ কোরিয়া','IT':'ইতালি','ES':'স্পেন','EG':'মিশর','ZA':'দক্ষিণ আফ্রিকা','ID':'ইন্দোনেশিয়া','MX':'মেক্সিকো','TH':'থাইল্যান্ড','TR':'তুরস্ক','SG':'সিঙ্গাপুর','MY':'মালয়েশিয়া','AF':'আফগানিস্তান','UA':'ইউক্রেন','CH':'সুইজারল্যান্ড','NZ':'নিউজিল্যান্ড','NG':'নাইজেরিয়া','KE':'কেনিয়া','AR':'আর্জেন্টিনা','SE':'সুইডেন','NO':'নরওয়ে','FI':'ফিনল্যান্ড','PL':'পোল্যান্ড','PT':'পর্তুগাল','GR':'গ্রিস','IQ':'ইরাক','IL':'ইসরায়েল','QA':'কাতার','KW':'কুয়েত','OM':'ওমান','MM':'মিয়ানমার','VN':'ভিয়েতনাম','PH':'ফিলিপাইন','ET':'ইথিওপিয়া','MA':'মরক্কো'}[code] ?? name;
+    return name;
+  }
 
   String get capital => capitals.isEmpty ? 'Not listed' : capitals.first;
   String get currencyLabel => currencyNames.isEmpty
@@ -67,6 +75,13 @@ class Country {
     final flagData = asJsonMap(json['flags']);
     final currencyData = asJsonMap(json['currencies']);
     final languageData = asJsonMap(json['languages']);
+    final translationData = asJsonMap(json['translations']);
+    const translationKeys = {'ar':'ara','fa':'per','ru':'rus','zh':'zho','ja':'jpn'};
+    final translatedNames = <String, String>{};
+    for (final entry in translationKeys.entries) {
+      final translated = asJsonMap(translationData[entry.value])['common'];
+      if (translated is String && translated.isNotEmpty) translatedNames[entry.key] = translated;
+    }
 
     return Country(
       name: (nameData['common'] ?? json['name'] ?? 'Unknown').toString(),
@@ -88,6 +103,7 @@ class Country {
       currencyCodes: currencyData.keys.toList(),
       timezones: asJsonList(json['timezones']).map((item) => item.toString()).toList(),
       borders: asJsonList(json['borders']).map((item) => item.toString()).toList(),
+      translatedNames: translatedNames,
     );
   }
 
@@ -106,6 +122,7 @@ class Country {
         'currencyCodes': currencyCodes,
         'timezones': timezones,
         'borders': borders,
+        'translatedNames': translatedNames,
       };
 
   factory Country.fromSavedJson(Map<String, dynamic> json) => Country(
@@ -123,6 +140,7 @@ class Country {
         currencyCodes: asJsonList(json['currencyCodes']).map((item) => item.toString()).toList(),
         timezones: asJsonList(json['timezones']).map((item) => item.toString()).toList(),
         borders: asJsonList(json['borders']).map((item) => item.toString()).toList(),
+        translatedNames: asJsonMap(json['translatedNames']).map((key, value) => MapEntry(key.toString(), value.toString())),
       );
 
   String toSavedString() => jsonEncode(toJson());
@@ -254,6 +272,12 @@ class TravelDestination {
   final String imageUrl;
   final String pageUrl;
 
+  factory TravelDestination.fromWikipedia(Map<String, dynamic> json) {
+    final thumbnail = asJsonMap(json['thumbnail']);
+    final rawSummary = cleanHtml((json['extract'] ?? '').toString());
+    return TravelDestination(id: (json['pageid'] ?? json['title'] ?? '').toString(), title: (json['title'] ?? 'Untitled place').toString(), summary: rawSummary.isEmpty ? 'Open the source article for more information.' : rawSummary, imageUrl: (thumbnail['source'] ?? '').toString(), pageUrl: (json['fullurl'] ?? '').toString());
+  }
+
   factory TravelDestination.fromWikivoyage(Map<String, dynamic> json) {
     final thumbnail = asJsonMap(json['thumbnail']);
     final rawSummary = cleanHtml((json['extract'] ?? '').toString());
@@ -321,4 +345,22 @@ class WeatherSnapshot {
   final List<ForecastDay> days;
   final double? usAqi;
   final double? pm25;
+}
+
+class PublicEntity {
+  const PublicEntity({required this.id, required this.label, required this.description, required this.url});
+  final String id, label, description, url;
+  factory PublicEntity.fromJson(Map<String, dynamic> json) => PublicEntity(
+    id: (json['id'] ?? '').toString(),
+    label: (json['label'] ?? json['id'] ?? '').toString(),
+    description: (json['description'] ?? '').toString(),
+    url: (json['concepturi'] ?? 'https://www.wikidata.org/wiki/${json['id'] ?? ''}').toString(),
+  );
+}
+
+class WorldBankIndicator {
+  const WorldBankIndicator({required this.code, required this.value, required this.year});
+  final String code;
+  final double value;
+  final String year;
 }

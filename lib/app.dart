@@ -5,6 +5,7 @@ import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'localization.dart';
 import 'settings_screen.dart';
+import 'explore_screen.dart';
 
 import 'app_store.dart';
 import 'screens.dart';
@@ -202,7 +203,7 @@ class _AppShellState extends State<AppShell> {
     final scheme = Theme.of(context).colorScheme;
     final pages = <Widget>[
       HomeScreen(onNavigate: _goTo),
-      const CountriesScreen(),
+      const ExplorerScreen(),
       const WeatherScreen(),
       const BooksScreen(),
       const SavedScreen(),

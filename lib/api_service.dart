@@ -168,7 +168,7 @@ class ApiService {
   }
 
   Future<({double latitude, double longitude, String name, String country})> geocodeCity(
-    String city,
+    String city, {String language = 'en'},
   ) async {
     final trimmed = city.trim();
     if (trimmed.isEmpty) throw const ApiException('Enter a city name first.');
@@ -176,7 +176,7 @@ class ApiService {
       Uri.https('geocoding-api.open-meteo.com', '/v1/search', {
         'name': trimmed,
         'count': '8',
-        'language': 'en',
+        'language': language,
         'format': 'json',
       }),
       'geocode_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
@@ -236,10 +236,12 @@ class ApiService {
     return photos;
   }
 
-  Future<List<TravelDestination>> searchDestinations(String query, {int offset = 0}) async {
+  Future<List<TravelDestination>> searchDestinations(String query, {int offset = 0, String language = 'en'}) async {
     final trimmed = query.trim().isEmpty ? 'popular destinations' : query.trim();
+    const guideLanguages = {'en','de','fr','it','nl','ru','zh','fa','he','pl','pt','es','sv','vi','uk','ko','cs','el','ro','fi','da'};
+    if (!guideLanguages.contains(language)) return searchWikipediaPlaces(trimmed, language: language, offset: offset);
     final data = await _fetchJsonObject(
-      Uri.https('en.wikivoyage.org', '/w/api.php', {
+      Uri.https('${language}.wikivoyage.org', '/w/api.php', {
         'action': 'query',
         'generator': 'search',
         'gsrsearch': trimmed,
@@ -263,6 +265,62 @@ class ApiService {
         .map((item) => TravelDestination.fromWikivoyage(asJsonMap(item)))
         .where((destination) => destination.title.isNotEmpty && destination.pageUrl.isNotEmpty)
         .toList();
+  }
+
+
+  Future<List<PublicEntity>> searchWikidata(String query, {String language = 'en'}) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return const [];
+    final data = await _fetchJsonObject(
+      Uri.https('www.wikidata.org', '/w/api.php', {
+        'action': 'wbsearchentities', 'search': trimmed, 'language': language,
+        'uselang': language, 'type': 'item', 'limit': '15', 'format': 'json', 'origin': '*',
+      }),
+      'wikidata_${language}_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
+    );
+    return asJsonList(data['search']).map((item) => PublicEntity.fromJson(asJsonMap(item)))
+        .where((item) => item.label.isNotEmpty && item.url.isNotEmpty).toList();
+  }
+
+  Future<List<TravelDestination>> searchWikipediaPlaces(String query, {String language = 'en', int offset = 0}) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return const [];
+    final data = await _fetchJsonObject(
+      Uri.https('${language}.wikipedia.org', '/w/api.php', {
+        'action': 'query', 'generator': 'search', 'gsrsearch': trimmed, 'gsrnamespace': '0',
+        'gsrlimit': '12', 'gsroffset': offset.toString(),
+        'prop': 'extracts|pageimages|info', 'exintro': '1', 'explaintext': '1', 'exchars': '700',
+        'piprop': 'thumbnail', 'pithumbsize': '480', 'inprop': 'url', 'format': 'json', 'origin': '*',
+      }),
+      'wiki_places_${language}_${trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}_${offset}',
+    );
+    final pages = asJsonMap(asJsonMap(data['query'])['pages']);
+    return pages.values.map((item) => TravelDestination.fromWikipedia(asJsonMap(item)))
+        .where((item) => item.title.isNotEmpty && item.pageUrl.isNotEmpty).toList();
+  }
+
+  Future<List<WorldBankIndicator>> fetchWorldBankIndicators(String countryCode) async {
+    const codes = ['SP.POP.TOTL','NY.GDP.MKTP.CD','NY.GDP.PCAP.CD','IT.NET.USER.ZS','SP.DYN.LE00.IN'];
+    final data = await _getJson(
+      Uri.https('api.worldbank.org', '/v2/country/${countryCode.toLowerCase()}/indicator/${codes.join(';')}', {
+        'format': 'json', 'per_page': '100', 'mrv': '10',
+      }),
+      cacheKey: 'worldbank_${countryCode.toLowerCase()}',
+    );
+    if (data is! List || data.length < 2) return const [];
+    final latest = <String, WorldBankIndicator>{};
+    for (final raw in asJsonList(data[1])) {
+      final row = asJsonMap(raw);
+      final code = asJsonMap(row['indicator'])['id']?.toString() ?? '';
+      final value = row['value'];
+      if (!codes.contains(code) || value is! num) continue;
+      final year = (row['date'] ?? '').toString();
+      final previous = latest[code];
+      if (previous == null || year.compareTo(previous.year) > 0) {
+        latest[code] = WorldBankIndicator(code: code, value: value.toDouble(), year: year);
+      }
+    }
+    return codes.where(latest.containsKey).map((code) => latest[code]!).toList();
   }
 
   Future<Map<String, String>> fetchCurrencies() async {

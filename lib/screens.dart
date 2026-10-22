@@ -174,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _CountryGrid(
                 countries: store.countries.where((country) {
                   final query = _query;
-                  final matches = country.name.toLowerCase().contains(query) ||
+                  final matches = country.localizedName(Localizations.localeOf(context).languageCode).toLowerCase().contains(query) ||
                       country.capitals.any((capital) => capital.toLowerCase().contains(query)) ||
                       country.region.toLowerCase().contains(query) ||
                       country.languages.any((language) => language.toLowerCase().contains(query));
@@ -215,7 +215,7 @@ class _GlobalStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final population = countries.fold<int>(0, (total, country) => total + country.population);
+    final population = countries.fold<int>(0, (total, country) => total + (country.population > 0 ? country.population : 0));
     final languages = countries.expand((country) => country.languages).toSet().length;
     return GlassSurface(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -223,7 +223,7 @@ class _GlobalStats extends StatelessWidget {
       child: Row(children: [
         Expanded(child: _GlobalStat(icon: Icons.public_rounded, color: const Color(0xFF6D60F4), number: countries.length.toString(), label: 'Countries')),
         Container(width: 1, height: 43, color: scheme.outlineVariant.withValues(alpha: 0.8)),
-        Expanded(child: _GlobalStat(icon: Icons.groups_rounded, color: const Color(0xFF0A9DB1), number: formatCompactNumber(population), label: 'Population')),
+        Expanded(child: _GlobalStat(icon: Icons.groups_rounded, color: const Color(0xFF0A9DB1), number: population > 0 ? formatCompactNumber(population) : '—', label: 'Population')),
         Container(width: 1, height: 43, color: scheme.outlineVariant.withValues(alpha: 0.8)),
         Expanded(child: _GlobalStat(icon: Icons.translate_rounded, color: const Color(0xFFE96692), number: languages.toString(), label: 'Languages')),
       ]),
@@ -375,7 +375,7 @@ class _CountriesScreenState extends State<CountriesScreen> {
         final regionSet = store.countries.map((country) => country.region).where((value) => value.isNotEmpty).toSet().toList()..sort();
         final regions = ['All', ...regionSet];
         final filtered = store.countries.where((country) {
-          final matches = _query.isEmpty || country.name.toLowerCase().contains(_query) ||
+          final matches = _query.isEmpty || country.localizedName(Localizations.localeOf(context).languageCode).toLowerCase().contains(_query) ||
               country.capitals.any((capital) => capital.toLowerCase().contains(_query)) ||
               country.region.toLowerCase().contains(_query) ||
               country.languages.any((language) => language.toLowerCase().contains(_query));
@@ -490,12 +490,12 @@ class _CountryTile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(country.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800)),
+              Text(country.localizedName(Localizations.localeOf(context).languageCode), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800)),
               const SizedBox(height: 4),
               Text(country.capital, maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 4),
-              Text(country.region + ' · ' + formatCompactNumber(country.population) + ' people',
+              Text(tr(context, country.region) + ' · ' + (country.population > 0 ? formatCompactNumber(country.population) + ' ' + tr(context, 'people') : tr(context, 'Population unavailable')),
                   maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.primary)),
             ],
@@ -546,12 +546,12 @@ class CountryDetailsSheet extends StatelessWidget {
             Wrap(spacing: 8, runSpacing: 8, children: [
               _InfoChip(icon: Icons.location_city, label: 'Capital', value: country.capital),
               _InfoChip(icon: Icons.public, label: 'Region', value: country.region),
-              _InfoChip(icon: Icons.people_alt_outlined, label: 'Population', value: formatCompactNumber(country.population)),
+              _InfoChip(icon: Icons.people_alt_outlined, label: 'Population', value: country.population > 0 ? formatCompactNumber(country.population) : tr(context, 'Population unavailable')),
               _InfoChip(icon: Icons.square_foot_outlined, label: 'Area', value: formatCompactNumber(country.area.round()) + ' km²'),
               _InfoChip(icon: Icons.currency_exchange, label: 'Currency', value: country.currencyLabel),
-              _InfoChip(icon: Icons.translate_rounded, label: 'Languages', value: country.languages.isEmpty ? 'Not listed' : country.languages.join(', ')),
+              _InfoChip(icon: Icons.translate_rounded, label: 'Languages', value: country.languages.isEmpty ? tr(context, 'Not listed') : country.languages.join(', ')),
               _InfoChip(icon: Icons.schedule_rounded, label: 'Time zones', value: country.timezones.take(4).join(', ')),
-              _InfoChip(icon: Icons.flag_outlined, label: 'Borders', value: country.borders.isEmpty ? 'None listed' : country.borders.join(', ')),
+              _InfoChip(icon: Icons.flag_outlined, label: 'Borders', value: country.borders.isEmpty ? tr(context, 'None listed') : country.borders.join(', ')),
             ]),
             if (country.flagUrl.isNotEmpty) ...[
               const SizedBox(height: 18),
@@ -613,7 +613,7 @@ void showCountryCompareDialog(BuildContext context, Country first) {
             initialValue: second,
             isExpanded: true,
             decoration: const InputDecoration(labelText: tr(context, 'Compare with')),
-            items: countries.map((country) => DropdownMenuItem(value: country, child: Text(country.flagEmoji + '  ' + country.name, overflow: TextOverflow.ellipsis))).toList(),
+            items: countries.map((country) => DropdownMenuItem(value: country, child: Text(country.flagEmoji + '  ' + country.localizedName(Localizations.localeOf(context).languageCode), overflow: TextOverflow.ellipsis))).toList(),
             onChanged: (value) { if (value != null) setState(() => second = value); },
           ),
           const SizedBox(height: 18),
