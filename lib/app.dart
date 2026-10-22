@@ -18,7 +18,7 @@ class AtlasFlowApp extends StatelessWidget {
     return AnimatedBuilder(
       animation: AppStore.instance,
       builder: (context, _) => MaterialApp(
-        title: tr(context, 'AtlasFlow — World Explorer'),
+        title: 'AtlasFlow — World Explorer',
         debugShowCheckedModeBanner: false,
         themeMode: AppStore.instance.themeMode,
         locale: AppStore.instance.locale,
