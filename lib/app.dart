@@ -2,7 +2,9 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart' hide Text;
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'localization.dart';
+import 'settings_screen.dart';
 
 import 'app_store.dart';
 import 'screens.dart';
@@ -18,6 +20,14 @@ class AtlasFlowApp extends StatelessWidget {
         title: 'AtlasFlow — World Explorer',
         debugShowCheckedModeBanner: false,
         themeMode: AppStore.instance.themeMode,
+        locale: AppStore.instance.locale,
+        supportedLocales: AtlasLocalizations.supportedLocales,
+        localizationsDelegates: const [
+          AtlasLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         theme: _buildTheme(Brightness.light),
         darkTheme: _buildTheme(Brightness.dark),
         home: const AppShell(),
@@ -176,12 +186,12 @@ class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
   void _goTo(int index) => setState(() => _selectedIndex = index);
 
-  static const _destinations = <NavigationDestination>[
-    NavigationDestination(icon: Icon(Icons.space_dashboard_outlined), selectedIcon: Icon(Icons.space_dashboard_rounded), label: 'Home'),
-    NavigationDestination(icon: Icon(Icons.public_outlined), selectedIcon: Icon(Icons.public_rounded), label: 'Atlas'),
-    NavigationDestination(icon: Icon(Icons.wb_cloudy_outlined), selectedIcon: Icon(Icons.wb_cloudy_rounded), label: 'Weather'),
-    NavigationDestination(icon: Icon(Icons.menu_book_outlined), selectedIcon: Icon(Icons.menu_book_rounded), label: 'Books'),
-    NavigationDestination(icon: Icon(Icons.bookmark_border_rounded), selectedIcon: Icon(Icons.bookmark_rounded), label: 'Saved'),
+  List<NavigationDestination> _destinations(BuildContext context) => [
+    NavigationDestination(icon: const Icon(Icons.space_dashboard_outlined), selectedIcon: const Icon(Icons.space_dashboard_rounded), label: tr(context, 'Home')),
+    NavigationDestination(icon: const Icon(Icons.public_outlined), selectedIcon: const Icon(Icons.public_rounded), label: tr(context, 'Explore')),
+    NavigationDestination(icon: const Icon(Icons.wb_cloudy_outlined), selectedIcon: const Icon(Icons.wb_cloudy_rounded), label: tr(context, 'Weather')),
+    NavigationDestination(icon: const Icon(Icons.menu_book_outlined), selectedIcon: const Icon(Icons.menu_book_rounded), label: tr(context, 'Books')),
+    NavigationDestination(icon: const Icon(Icons.bookmark_border_rounded), selectedIcon: const Icon(Icons.bookmark_rounded), label: tr(context, 'Saved')),
   ];
 
   @override
@@ -198,7 +208,12 @@ class _AppShellState extends State<AppShell> {
       const SavedScreen(),
     ];
 
-    return Scaffold(
+    return PopScope<Object?>(
+      canPop: _selectedIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _selectedIndex != 0) _goTo(0);
+      },
+      child: Scaffold(
       extendBody: !wide,
       appBar: AppBar(
         titleSpacing: 18,
@@ -256,13 +271,18 @@ class _AppShellState extends State<AppShell> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: tr(context, 'Settings'),
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
+          ),
           Tooltip(
             message: tr(context, 'Appearance'),
             child: PopupMenuButton<ThemeMode>(
               icon: const Icon(Icons.palette_outlined),
               tooltip: tr(context, 'Appearance'),
               onSelected: store.setThemeMode,
-              itemBuilder: (context) => const [
+              itemBuilder: (context) => [
                 PopupMenuItem(value: ThemeMode.system, child: _ThemeMenuLabel(icon: Icons.brightness_auto, label: 'System theme')),
                 PopupMenuItem(value: ThemeMode.light, child: _ThemeMenuLabel(icon: Icons.light_mode_outlined, label: 'Light theme')),
                 PopupMenuItem(value: ThemeMode.dark, child: _ThemeMenuLabel(icon: Icons.dark_mode_outlined, label: 'Dark theme')),
@@ -303,7 +323,7 @@ class _AppShellState extends State<AppShell> {
                           onDestinationSelected: _goTo,
                           extended: width >= 1200,
                           labelType: width >= 1200 ? NavigationRailLabelType.none : NavigationRailLabelType.all,
-                          destinations: _destinations.map((item) => NavigationRailDestination(
+                          destinations: _destinations(context).map((item) => NavigationRailDestination(
                             icon: item.icon,
                             selectedIcon: item.selectedIcon,
                             label: Text(item.label),
@@ -339,11 +359,12 @@ class _AppShellState extends State<AppShell> {
                   child: NavigationBar(
                     selectedIndex: _selectedIndex,
                     onDestinationSelected: _goTo,
-                    destinations: _destinations,
+                    destinations: _destinations(context),
                   ),
                 ),
               ),
             ),
+      ),
     );
   }
 }

@@ -13,7 +13,7 @@
 - **Currency converter:** reference exchange rates with source date and conversion; not a guaranteed live trading quote.
 - **Country quiz:** flag quiz generated from fetched country data; best score is stored locally.
 - **Saved space:** favourite countries, books and images stored on this device.
-- **Personalization:** Light, Dark and System themes; iOS-inspired glass surfaces with clear contrast, glossy gradient cards, smooth page transitions and responsive layouts.
+- **Personalization:** Light, Dark and System themes; persistent app-wide language selection (English, Bengali, Arabic, Persian, Russian, Simplified Chinese, Japanese and Hindi), native RTL layouts for Arabic/Persian, iOS-inspired glass surfaces and responsive layouts.
 - **Progressive loading:** book, photo and travel-guide results load in pages with explicit Load more controls; shimmer skeleton cards preserve layout while data arrives.
 - **No account, no private backend, no API keys.** Internet access is required for fresh public data. Cached responses may be shown if a source is temporarily unavailable.
 

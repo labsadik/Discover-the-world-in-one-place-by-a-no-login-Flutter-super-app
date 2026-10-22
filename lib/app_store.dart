@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_service.dart';
 import 'models.dart';
+import 'localization.dart';
 
 class AppStore extends ChangeNotifier {
   AppStore._();
@@ -15,6 +16,7 @@ class AppStore extends ChangeNotifier {
   SharedPreferences? _prefs;
 
   ThemeMode themeMode = ThemeMode.system;
+  Locale locale = const Locale('en');
   List<Country> countries = const [];
   bool countriesLoading = false;
   String? countriesError;
@@ -27,6 +29,8 @@ class AppStore extends ChangeNotifier {
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
     final theme = _prefs?.getString('theme_mode') ?? 'system';
+    final savedLocale = _prefs?.getString('app_locale') ?? 'en';
+    locale = Locale(AtlasLocalizations.languages.any((language) => language.code == savedLocale) ? savedLocale : 'en');
     themeMode = switch (theme) {
       'light' => ThemeMode.light,
       'dark' => ThemeMode.dark,
@@ -68,6 +72,12 @@ class AppStore extends ChangeNotifier {
     } catch (_) {
       // A corrupt local preference should not stop the app from opening.
     }
+  }
+
+  Future<void> setLocale(Locale value) async {
+    locale = value;
+    notifyListeners();
+    await _prefs?.setString('app_locale', value.languageCode);
   }
 
   Future<void> setThemeMode(ThemeMode value) async {
