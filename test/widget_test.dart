@@ -17,6 +17,7 @@ void main() {
       ],
       home: const Scaffold(body: atlas.Text('Home')),
     ));
+    await tester.pumpAndSettle();
     expect(find.text('হোম'), findsOneWidget);
   });
 

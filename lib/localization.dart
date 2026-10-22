@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show SynchronousFuture;
 import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/material.dart' as material;
 
@@ -26,7 +27,7 @@ class AtlasLocalizations {
 class _AtlasDelegate extends LocalizationsDelegate<AtlasLocalizations> {
   const _AtlasDelegate();
   @override bool isSupported(Locale locale) => AtlasLocalizations.languages.any((item) => item.code == locale.languageCode);
-  @override Future<AtlasLocalizations> load(Locale locale) async => const AtlasLocalizations._();
+  @override Future<AtlasLocalizations> load(Locale locale) => SynchronousFuture(const AtlasLocalizations._());
   @override bool shouldReload(_AtlasDelegate old) => false;
 }
 String tr(BuildContext context, String source) => AtlasLocalizations.translate(Localizations.localeOf(context).languageCode, source);
