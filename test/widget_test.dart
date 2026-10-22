@@ -1,6 +1,7 @@
 import 'package:atlasflow/localization.dart' as atlas;
 import 'package:atlasflow/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -8,7 +9,12 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       locale: const Locale('bn'),
       supportedLocales: atlas.AtlasLocalizations.supportedLocales,
-      localizationsDelegates: const [atlas.AtlasLocalizations.delegate],
+      localizationsDelegates: const [
+        atlas.AtlasLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: const Scaffold(body: atlas.Text('Home')),
     ));
     expect(find.text('হোম'), findsOneWidget);
