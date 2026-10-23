@@ -44,7 +44,7 @@ Public access does not mean unlimited or unrestricted reuse. This app caches pol
 
 ## Run in VS Code
 
-1. Clone the repository https://github.com/WorkRCS/AtlasFlow.git and open the folder in VS Code.
+1. Clone the repository and open the folder in VS Code.
 2. Open the integrated terminal in the repository root.
 3. Run these commands:
 
